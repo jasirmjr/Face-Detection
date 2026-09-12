@@ -1,0 +1,23 @@
+﻿{
+  "version": 2,
+  "public": true,
+  "cleanUrls": true,
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "https://YOUR-BACKEND-API-URL/api/$1"
+    },
+    {
+      "src": "/photos/(.*)",
+      "dest": "https://YOUR-BACKEND-API-URL/photos/$1"
+    },
+    {
+      "src": "/static/(.*)",
+      "dest": "/static/$1"
+    },
+    {
+      "src": "/",
+      "dest": "/static/index.html"
+    }
+  ]
+}

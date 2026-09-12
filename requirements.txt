@@ -26,6 +26,7 @@ onnxruntime==1.29.0
 opencv-python==5.0.0.93
 packaging==26.3
 pillow==12.3.0
+pillow_heif==1.7.0
 portalocker==3.2.0
 protobuf==7.36.1
 pydantic==2.13.5
@@ -43,6 +44,5 @@ typing-inspection==0.4.4
 typing_extensions==4.16.0
 urllib3==2.7.0
 uvicorn==0.52.4
-
-
-pip freeze > requirements.txt
+watchdog==6.0.0
+gdown==6.2.0

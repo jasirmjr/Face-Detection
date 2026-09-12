@@ -8,9 +8,14 @@
 </head>
 <body class="bg-gray-50 text-gray-800 min-h-screen">
   <div class="max-w-5xl mx-auto py-10 px-4">
-    <header class="text-center mb-8">
+    <header class="text-center mb-6">
       <h1 class="text-3xl font-bold tracking-tight text-gray-900">Event Photo Finder</h1>
-      <p class="text-gray-500 mt-2">Upload a single selfie to find all photos containing your face</p>
+      <p class="text-gray-500 mt-1 text-sm">Upload a single selfie to find all photos containing your face</p>
+      <div class="inline-flex items-center gap-2 px-3 py-1 bg-green-50 border border-green-200 rounded-full text-xs text-green-700 mt-3">
+        <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+        <span id="syncStatusText">Live Sync Active (Auto-indexes incoming photos)</span>
+      </div>
+      <div id="eventStats" class="text-xs text-gray-500 mt-1.5 font-medium">Checking live status...</div>
     </header>
 
     <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200 max-w-lg mx-auto">
@@ -21,7 +26,7 @@
             ↻ Re-index Folder Photos
           </button>
         </div>
-        <input type="text" id="eventId" value="annual-meet" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="e.g. annual-meet" />
+        <input type="text" id="eventId" value="annual-meet" onchange="checkEventStatus()" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="e.g. annual-meet" />
       </div>
 
       <div class="mb-4">
@@ -45,6 +50,60 @@
       <div id="loader" class="hidden text-center mt-4 text-blue-600 font-medium">
         Scanning faces, please wait...
       </div>
+
+      <!-- Admin / Camera Crew Panel -->
+      <details class="mt-5 pt-4 border-t border-gray-100 text-xs text-gray-600">
+        <summary class="cursor-pointer font-medium text-blue-600 hover:text-blue-700">⚙️ Admin: Import Google Drive Link / Upload Photos</summary>
+        <div class="mt-3 space-y-4">
+          <!-- GDrive Link Import -->
+          <div class="bg-blue-50/60 p-3 rounded-lg border border-blue-100">
+            <label class="block font-semibold text-gray-700 mb-1">🔗 Import from Google Drive Link</label>
+            <input type="text" id="gdriveUrlInput" class="w-full px-2.5 py-1.5 border rounded bg-white text-xs focus:outline-none focus:ring-1 focus:ring-blue-500" placeholder="https://drive.google.com/drive/folders/..." />
+            <div class="flex items-center justify-between text-[10px] text-gray-500 mt-1 mb-2">
+              <span>Ensure link is "Anyone with the link can view"</span>
+              <span class="text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded font-medium">⚡ Auto-Storage Saver Active</span>
+            </div>
+            <button type="button" onclick="importFromGDrive()" id="gdriveImportBtn" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-1.5 px-3 rounded font-medium transition-colors">
+              Import & Index from Drive
+            </button>
+            
+            <!-- Live Progress Bar Widget -->
+            <div id="gdriveProgressContainer" class="hidden mt-3 bg-white p-3 rounded-lg border border-blue-200 shadow-sm space-y-2">
+              <div class="flex justify-between items-center text-xs">
+                <span id="gdriveProgressTitle" class="font-semibold text-gray-700 flex items-center gap-1.5">
+                  <svg id="gdriveSpinner" class="animate-spin h-3.5 w-3.5 text-blue-600" viewBox="0 0 24 24" fill="none"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>
+                  <span id="gdriveStatusHeading">Importing from Drive...</span>
+                </span>
+                <span id="gdrivePercentBadge" class="font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded text-xs">0%</span>
+              </div>
+              
+              <!-- Progress Bar Track -->
+              <div class="w-full bg-gray-200 rounded-full h-2.5 overflow-hidden">
+                <div id="gdriveProgressBar" class="bg-gradient-to-r from-blue-500 to-emerald-500 h-2.5 rounded-full transition-all duration-300 ease-out" style="width: 0%"></div>
+              </div>
+
+              <!-- Live Message & Stats -->
+              <div class="flex justify-between items-center text-[11px] text-gray-500">
+                <span id="gdriveProgressMsg" class="truncate pr-2 font-mono text-[10px]">Connecting to Google Drive...</span>
+                <span id="gdriveProgressCount" class="font-mono text-[10px] text-gray-600 whitespace-nowrap">0 / 0</span>
+              </div>
+
+              <div id="gdriveResultStats" class="hidden pt-1 text-[11px] font-medium text-emerald-700"></div>
+            </div>
+            <div id="gdriveMsg" class="hidden mt-2 text-center text-xs font-medium"></div>
+          </div>
+
+          <!-- Direct File Upload -->
+          <div class="pt-1">
+            <label class="block font-semibold text-gray-700 mb-1">📷 Or Upload Files from Device</label>
+            <input type="file" id="batchUploadInput" multiple accept="image/*" class="w-full text-xs text-gray-500 file:mr-2 file:py-1 file:px-3 file:rounded file:border-0 file:bg-gray-100 file:text-gray-700" />
+            <button type="button" onclick="uploadBatchPhotos()" id="batchUploadBtn" class="mt-2 w-full bg-gray-800 hover:bg-gray-900 text-white py-1.5 px-3 rounded font-medium transition-colors">
+              Upload Selected Photos
+            </button>
+            <div id="batchUploadMsg" class="hidden mt-1 text-center text-xs font-medium text-green-600"></div>
+          </div>
+        </div>
+      </details>
     </div>
 
     <!-- Gallery Results -->
@@ -89,12 +148,32 @@
           resultCount.innerText = `Photos Found: ${data.results.length}`;
           data.results.forEach(item => {
             const card = document.createElement("div");
-            card.className = "group relative rounded-lg overflow-hidden border bg-white shadow-sm";
+            card.className = "group relative rounded-xl overflow-hidden border border-gray-200 bg-white shadow-sm hover:shadow-md transition duration-200";
+            const previewUrl = item.preview_url || item.url;
+            const downloadUrl = item.download_url || item.url;
+            const isGDrive = downloadUrl && downloadUrl.includes("drive.google.com");
+
             card.innerHTML = `
-              <img src="${item.url}" alt="${item.file_name}" class="w-full h-48 object-cover" />
-              <div class="p-2 flex justify-between items-center text-xs">
-                <span class="text-gray-500">Score: ${item.similarity_score}</span>
-                <a href="${item.url}" download target="_blank" class="text-blue-600 font-medium hover:underline">Download</a>
+              <div class="relative overflow-hidden bg-gray-100 aspect-[3/4]">
+                <img src="${previewUrl}" alt="${item.file_name}" loading="lazy" class="w-full h-full object-cover object-top group-hover:scale-105 transition duration-300" />
+                <span class="absolute top-2 right-2 bg-black/60 backdrop-blur-sm text-white text-[10px] px-2 py-0.5 rounded-full font-medium shadow">
+                  Match ${(item.similarity_score * 100).toFixed(0)}%
+                </span>
+                ${isGDrive ? `
+                <span class="absolute bottom-2 left-2 bg-emerald-600/90 text-white text-[9px] px-1.5 py-0.5 rounded font-medium shadow flex items-center gap-1">
+                  ☁️ Full-Res Original
+                </span>
+                ` : ''}
+              </div>
+              <div class="p-3 bg-white flex flex-col gap-2">
+                <div class="flex justify-between items-center text-[11px] text-gray-500 font-mono truncate">
+                  <span class="truncate" title="${item.file_name}">${item.file_name}</span>
+                </div>
+                <a href="${downloadUrl}" download="${item.file_name}" target="_blank"
+                   class="w-full text-center py-1.5 px-3 text-xs font-semibold rounded-lg ${isGDrive ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-blue-600 hover:bg-blue-700'} text-white transition-colors flex items-center justify-center gap-1.5 shadow-sm">
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                  ${isGDrive ? "⬇️ Download High-Res Original" : "⬇️ Download Photo"}
+                </a>
               </div>
             `;
             gallery.appendChild(card);
@@ -133,8 +212,207 @@
       } finally {
         indexBtn.innerText = "↻ Re-index Folder Photos";
         indexBtn.disabled = false;
+        checkEventStatus();
       }
     }
+
+    let progressInterval = null;
+
+    function startProgressPolling(eventId) {
+      if (progressInterval) clearInterval(progressInterval);
+      const progContainer = document.getElementById("gdriveProgressContainer");
+      const progBar = document.getElementById("gdriveProgressBar");
+      const percentBadge = document.getElementById("gdrivePercentBadge");
+      const progMsg = document.getElementById("gdriveProgressMsg");
+      const progCount = document.getElementById("gdriveProgressCount");
+      const resultStats = document.getElementById("gdriveResultStats");
+      const btn = document.getElementById("gdriveImportBtn");
+      const spinner = document.getElementById("gdriveSpinner");
+      const heading = document.getElementById("gdriveStatusHeading");
+
+      progContainer.classList.remove("hidden");
+
+      progressInterval = setInterval(async () => {
+        try {
+          const res = await fetch(`/api/events/${eventId}/import-progress`);
+          if (!res.ok) return;
+          const data = await res.json();
+
+          if (data.status === "in_progress") {
+            btn.disabled = true;
+            btn.innerText = "⏳ Importing in background...";
+            spinner.classList.remove("hidden");
+            heading.innerText = "Importing from Drive...";
+            const pct = Math.min(100, Math.max(0, data.percent || 0));
+            progBar.style.width = `${pct}%`;
+            progBar.className = "bg-gradient-to-r from-blue-500 to-emerald-500 h-2.5 rounded-full transition-all duration-300 ease-out";
+            percentBadge.innerText = `${pct}%`;
+            percentBadge.className = "font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded text-xs";
+            progMsg.innerText = data.message || "Processing photos...";
+            if (data.total_count > 0) {
+              progCount.innerText = `${data.downloaded_count || 0} / ${data.total_count}`;
+            }
+          } else if (data.status === "completed") {
+            clearInterval(progressInterval);
+            progressInterval = null;
+            btn.disabled = false;
+            btn.innerText = "Import & Index from Drive";
+            spinner.classList.add("hidden");
+            heading.innerText = "Import Complete";
+            progBar.style.width = "100%";
+            progBar.className = "bg-emerald-500 h-2.5 rounded-full transition-all duration-300 ease-out";
+            percentBadge.innerText = "100%";
+            percentBadge.className = "font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded text-xs";
+            progMsg.innerText = data.message || "All photos imported and indexed successfully!";
+            resultStats.className = "pt-1 text-[11px] font-medium text-emerald-700 block";
+            resultStats.innerText = `✅ ${data.message}`;
+            document.getElementById("gdriveUrlInput").value = "";
+            checkEventStatus();
+          } else if (data.status === "error") {
+            clearInterval(progressInterval);
+            progressInterval = null;
+            btn.disabled = false;
+            btn.innerText = "Import & Index from Drive";
+            spinner.classList.add("hidden");
+            heading.innerText = "Import Failed";
+            progBar.className = "bg-red-500 h-2.5 rounded-full";
+            percentBadge.className = "font-bold text-red-700 bg-red-100 px-2 py-0.5 rounded text-xs";
+            progMsg.innerText = data.error || data.message || "An error occurred during import.";
+            resultStats.className = "pt-1 text-[11px] font-medium text-red-600 block";
+            resultStats.innerText = `❌ ${data.error || data.message}`;
+          }
+        } catch (e) {
+          console.error("Progress poll error:", e);
+        }
+      }, 800);
+    }
+
+    async function checkEventStatus() {
+      const eventId = document.getElementById("eventId").value.trim();
+      const statsEl = document.getElementById("eventStats");
+      if (!eventId || !statsEl) return;
+
+      try {
+        const res = await fetch(`/api/events/${eventId}/status`);
+        if (res.ok) {
+          const data = await res.json();
+          statsEl.innerText = `Photos in folder: ${data.total_photos_in_folder} | Faces indexed in DB: ${data.total_faces_indexed}`;
+        } else {
+          statsEl.innerText = `Event folder '${eventId}' not initialized yet`;
+        }
+
+        // Auto-resume progress display if import is currently running
+        if (!progressInterval) {
+          const pRes = await fetch(`/api/events/${eventId}/import-progress`);
+          if (pRes.ok) {
+            const pData = await pRes.json();
+            if (pData.status === "in_progress") {
+              startProgressPolling(eventId);
+            }
+          }
+        }
+      } catch (e) {
+        statsEl.innerText = "Server connecting...";
+      }
+    }
+
+    async function uploadBatchPhotos() {
+      const eventId = document.getElementById("eventId").value.trim();
+      const fileInput = document.getElementById("batchUploadInput");
+      const msg = document.getElementById("batchUploadMsg");
+      const btn = document.getElementById("batchUploadBtn");
+
+      if (!eventId || !fileInput.files.length) {
+        alert("Please select one or more photos to upload.");
+        return;
+      }
+
+      btn.disabled = true;
+      btn.innerText = `Uploading ${fileInput.files.length} photo(s)...`;
+      msg.classList.remove("hidden");
+      msg.innerText = "Uploading to server...";
+
+      const formData = new FormData();
+      for (let i = 0; i < fileInput.files.length; i++) {
+        formData.append("files", fileInput.files[i]);
+      }
+
+      try {
+        const res = await fetch(`/api/events/${eventId}/upload`, {
+          method: "POST",
+          body: formData
+        });
+        const data = await res.json();
+        if (res.ok) {
+          msg.innerText = `Uploaded ${data.uploaded_count} photos! Auto-indexing started.`;
+          fileInput.value = "";
+          setTimeout(checkEventStatus, 1500);
+        } else {
+          msg.innerText = "Upload failed: " + (data.detail || "Error");
+        }
+      } catch (err) {
+        msg.innerText = "Network error during upload.";
+      } finally {
+        btn.disabled = false;
+        btn.innerText = "Upload Selected Photos";
+      }
+    }
+
+    async function importFromGDrive() {
+      const eventId = document.getElementById("eventId").value.trim();
+      const driveUrl = document.getElementById("gdriveUrlInput").value.trim();
+      const btn = document.getElementById("gdriveImportBtn");
+      const progContainer = document.getElementById("gdriveProgressContainer");
+      const progBar = document.getElementById("gdriveProgressBar");
+      const percentBadge = document.getElementById("gdrivePercentBadge");
+      const progMsg = document.getElementById("gdriveProgressMsg");
+      const progCount = document.getElementById("gdriveProgressCount");
+      const resultStats = document.getElementById("gdriveResultStats");
+
+      if (!eventId || !driveUrl) {
+        alert("Please provide both an Event Identifier and the Google Drive link.");
+        return;
+      }
+
+      btn.disabled = true;
+      btn.innerText = "⏳ Connecting to Drive...";
+      progContainer.classList.remove("hidden");
+      resultStats.classList.add("hidden");
+      progBar.style.width = "5%";
+      progBar.className = "bg-gradient-to-r from-blue-500 to-emerald-500 h-2.5 rounded-full transition-all duration-300 ease-out";
+      percentBadge.innerText = "5%";
+      percentBadge.className = "font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded text-xs";
+      progMsg.innerText = "Connecting to Google Drive and scanning folder...";
+      progCount.innerText = "0 / --";
+
+      const formData = new FormData();
+      formData.append("drive_url", driveUrl);
+
+      try {
+        const res = await fetch(`/api/events/${eventId}/import-gdrive`, {
+          method: "POST",
+          body: formData
+        });
+        const data = await res.json();
+        if (res.ok) {
+          startProgressPolling(eventId);
+        } else {
+          btn.disabled = false;
+          btn.innerText = "Import & Index from Drive";
+          alert("Import failed to start: " + (data.detail || data.message || "Unknown error"));
+        }
+      } catch (err) {
+        btn.disabled = false;
+        btn.innerText = "Import & Index from Drive";
+        alert("Network error: Could not reach the server.");
+      }
+    }
+
+    // Auto-poll status on load and periodically
+    window.addEventListener("DOMContentLoaded", () => {
+      checkEventStatus();
+      setInterval(checkEventStatus, 8000);
+    });
   </script>
 </body>
 </html>
