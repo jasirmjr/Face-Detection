@@ -271,11 +271,12 @@ class FaceEngine:
         newly_indexed = 0
         faces_count = 0
         if not drive_links:
+            drive_links = {}
             links_file = os.path.join(event_folder, "gdrive_links.json")
             if os.path.exists(links_file):
                 try:
                     with open(links_file, "r", encoding="utf-8") as lf:
-                        drive_links = json.load(lf)
+                        drive_links = json.load(lf) or {}
                 except Exception as e:
                     print(f"[WARN] Failed to read gdrive_links.json: {e}")
                     drive_links = {}
