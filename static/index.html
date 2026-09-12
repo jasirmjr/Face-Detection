@@ -3,415 +3,398 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Event Face Finder</title>
+  <title>Find Your Event Photos — Lyf Ads</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Plus Jakarta Sans', sans-serif; }
+    .mono { font-family: 'JetBrains Mono', monospace; }
+  </style>
 </head>
-<body class="bg-gray-50 text-gray-800 min-h-screen">
-  <div class="max-w-5xl mx-auto py-10 px-4">
-    <header class="text-center mb-6">
-      <h1 class="text-3xl font-bold tracking-tight text-gray-900">Event Photo Finder</h1>
-      <p class="text-gray-500 mt-1 text-sm">Upload a single selfie to find all photos containing your face</p>
-      <div class="inline-flex items-center gap-2 px-3 py-1 bg-green-50 border border-green-200 rounded-full text-xs text-green-700 mt-3">
-        <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
-        <span id="syncStatusText">Live Sync Active (Auto-indexes incoming photos)</span>
-      </div>
-      <div id="eventStats" class="text-xs text-gray-500 mt-1.5 font-medium">Checking live status...</div>
-    </header>
+<body class="bg-gradient-to-b from-slate-50 via-white to-slate-50 text-slate-800 min-h-screen flex flex-col antialiased selection:bg-indigo-500 selection:text-white">
 
-    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200 max-w-lg mx-auto">
-      <div class="mb-4">
-        <div class="flex items-center justify-between mb-1">
-          <label class="block text-sm font-medium text-gray-700">Event Identifier</label>
-          <button type="button" id="indexBtn" onclick="indexEventPhotos()" class="text-xs text-blue-600 hover:text-blue-800 font-medium cursor-pointer transition-colors" title="Click whenever you add or remove photos from the folder">
-            ↻ Re-index Folder Photos
-          </button>
+  <!-- Top Navbar -->
+  <header class="w-full border-b border-slate-100 bg-white/80 backdrop-blur sticky top-0 z-30">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+      <a href="/" class="flex items-center gap-2.5">
+        <div class="h-9 w-9 rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-600 flex items-center justify-center shadow-md shadow-indigo-500/20 text-white font-black text-base">
+          ✨
         </div>
-        <input type="text" id="eventId" value="annual-meet" onchange="checkEventStatus()" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="e.g. annual-meet" />
-      </div>
-
-      <div class="mb-4">
-        <label class="block text-sm font-medium text-gray-700 mb-1">Your Selfie / Reference Photo</label>
-        <input type="file" id="selfieInput" accept="image/*" class="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" />
-      </div>
-
-      <div class="mb-5">
-        <div class="flex justify-between items-center mb-1">
-          <label class="text-sm font-medium text-gray-700">Match Strictness (Threshold)</label>
-          <span id="thresholdVal" class="text-xs font-semibold text-blue-600 bg-blue-50 px-2 py-0.5 rounded">0.45</span>
+        <div>
+          <span class="font-extrabold text-base tracking-tight text-slate-900">Lyf Ads</span>
+          <span class="text-[11px] text-slate-400 block -mt-1">Face Finder</span>
         </div>
-        <input type="range" id="thresholdSlider" min="0.30" max="0.65" step="0.05" value="0.45" oninput="document.getElementById('thresholdVal').innerText = this.value" class="w-full h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600" />
-        <p class="text-xs text-gray-400 mt-1">0.45 is recommended. Higher values avoid strangers; lower values catch distant faces.</p>
+      </a>
+
+      <!-- Discreet Admin Link -->
+      <a href="/admin" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 transition border border-transparent hover:border-indigo-100" title="Switch to Admin Dashboard">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+        <span>Admin Portal</span>
+      </a>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="max-w-3xl mx-auto px-4 pt-10 pb-6 text-center space-y-3">
+    <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-50 border border-indigo-100 text-indigo-700 text-xs font-semibold tracking-wide shadow-sm">
+      <span class="w-2 h-2 rounded-full bg-indigo-600 animate-pulse"></span>
+      <span>AI-Powered Event Photo Search</span>
+    </div>
+    <h1 class="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight leading-tight">
+      Find Your Photos in Seconds
+    </h1>
+    <p class="text-sm sm:text-base text-slate-500 max-w-lg mx-auto">
+      Upload or snap a quick selfie, and our AI will instantly find every photo you appear in across the entire event.
+    </p>
+  </section>
+
+  <!-- Main Search Card -->
+  <main class="max-w-xl mx-auto px-4 w-full flex-1 mb-16">
+    <div class="bg-white rounded-3xl p-6 sm:p-8 shadow-xl shadow-slate-200/50 border border-slate-100 space-y-6">
+      
+      <!-- Event Picker -->
+      <div>
+        <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">
+          Select Event
+        </label>
+        <div class="relative">
+          <select id="eventIdSelect" onchange="syncEventIdInput(this.value)" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition appearance-none cursor-pointer">
+            <option value="">Loading events...</option>
+          </select>
+          <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3.5 text-slate-400">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+          </div>
+        </div>
+        <input type="hidden" id="eventId" value="" />
       </div>
 
-      <button id="searchBtn" onclick="findPhotos()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors">
-        Find My Photos
-      </button>
+      <!-- Selfie Upload Box -->
+      <div>
+        <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">
+          Your Selfie / Reference Photo
+        </label>
 
-      <div id="loader" class="hidden text-center mt-4 text-blue-600 font-medium">
-        Scanning faces, please wait...
-      </div>
+        <!-- Drop / Select Zone -->
+        <div id="dropZone" onclick="document.getElementById('selfieInput').click()" class="border-2 border-dashed border-slate-200 hover:border-indigo-500/80 bg-slate-50/70 hover:bg-indigo-50/20 rounded-2xl p-6 text-center transition cursor-pointer group relative overflow-hidden">
+          <input type="file" id="selfieInput" accept="image/*" capture="user" class="hidden" onchange="handleSelfieSelected(this)" />
 
-      <!-- Admin / Camera Crew Panel -->
-      <details class="mt-5 pt-4 border-t border-gray-100 text-xs text-gray-600">
-        <summary class="cursor-pointer font-medium text-blue-600 hover:text-blue-700">⚙️ Admin: Import Google Drive Link / Upload Photos</summary>
-        <div class="mt-3 space-y-4">
-          <!-- GDrive Link Import -->
-          <div class="bg-blue-50/60 p-3 rounded-lg border border-blue-100">
-            <label class="block font-semibold text-gray-700 mb-1">🔗 Import from Google Drive Link</label>
-            <input type="text" id="gdriveUrlInput" class="w-full px-2.5 py-1.5 border rounded bg-white text-xs focus:outline-none focus:ring-1 focus:ring-blue-500" placeholder="https://drive.google.com/drive/folders/..." />
-            <div class="flex items-center justify-between text-[10px] text-gray-500 mt-1 mb-2">
-              <span>Ensure link is "Anyone with the link can view"</span>
-              <span class="text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded font-medium">⚡ Auto-Storage Saver Active</span>
+          <!-- Default Empty State -->
+          <div id="selfieEmptyState" class="space-y-2">
+            <div class="w-12 h-12 mx-auto rounded-full bg-indigo-50 group-hover:bg-indigo-100 text-indigo-600 flex items-center justify-center transition">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
             </div>
-            <button type="button" onclick="importFromGDrive()" id="gdriveImportBtn" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-1.5 px-3 rounded font-medium transition-colors">
-              Import & Index from Drive
-            </button>
-            
-            <!-- Live Progress Bar Widget -->
-            <div id="gdriveProgressContainer" class="hidden mt-3 bg-white p-3 rounded-lg border border-blue-200 shadow-sm space-y-2">
-              <div class="flex justify-between items-center text-xs">
-                <span id="gdriveProgressTitle" class="font-semibold text-gray-700 flex items-center gap-1.5">
-                  <svg id="gdriveSpinner" class="animate-spin h-3.5 w-3.5 text-blue-600" viewBox="0 0 24 24" fill="none"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>
-                  <span id="gdriveStatusHeading">Importing from Drive...</span>
-                </span>
-                <span id="gdrivePercentBadge" class="font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded text-xs">0%</span>
-              </div>
-              
-              <!-- Progress Bar Track -->
-              <div class="w-full bg-gray-200 rounded-full h-2.5 overflow-hidden">
-                <div id="gdriveProgressBar" class="bg-gradient-to-r from-blue-500 to-emerald-500 h-2.5 rounded-full transition-all duration-300 ease-out" style="width: 0%"></div>
-              </div>
-
-              <!-- Live Message & Stats -->
-              <div class="flex justify-between items-center text-[11px] text-gray-500">
-                <span id="gdriveProgressMsg" class="truncate pr-2 font-mono text-[10px]">Connecting to Google Drive...</span>
-                <span id="gdriveProgressCount" class="font-mono text-[10px] text-gray-600 whitespace-nowrap">0 / 0</span>
-              </div>
-
-              <div id="gdriveResultStats" class="hidden pt-1 text-[11px] font-medium text-emerald-700"></div>
+            <div>
+              <p class="text-sm font-semibold text-slate-800">Take a selfie or upload a photo</p>
+              <p class="text-xs text-slate-400 mt-0.5">Clear lighting with your face facing the camera works best</p>
             </div>
-            <div id="gdriveMsg" class="hidden mt-2 text-center text-xs font-medium"></div>
           </div>
 
-          <!-- Direct File Upload -->
-          <div class="pt-1">
-            <label class="block font-semibold text-gray-700 mb-1">📷 Or Upload Files from Device</label>
-            <input type="file" id="batchUploadInput" multiple accept="image/*" class="w-full text-xs text-gray-500 file:mr-2 file:py-1 file:px-3 file:rounded file:border-0 file:bg-gray-100 file:text-gray-700" />
-            <button type="button" onclick="uploadBatchPhotos()" id="batchUploadBtn" class="mt-2 w-full bg-gray-800 hover:bg-gray-900 text-white py-1.5 px-3 rounded font-medium transition-colors">
-              Upload Selected Photos
-            </button>
-            <div id="batchUploadMsg" class="hidden mt-1 text-center text-xs font-medium text-green-600"></div>
+          <!-- Selected Preview State -->
+          <div id="selfiePreviewState" class="hidden flex flex-col items-center justify-center space-y-2">
+            <div class="relative">
+              <img id="selfiePreviewImg" src="" alt="Selfie preview" class="w-24 h-24 rounded-full object-cover shadow-md border-2 border-indigo-500" />
+              <div class="absolute bottom-0 right-0 bg-emerald-500 text-white rounded-full p-1 shadow">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" /></svg>
+              </div>
+            </div>
+            <p class="text-xs font-semibold text-indigo-600 hover:text-indigo-700">Click to change photo</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Advanced Settings (Collapsible Threshold) -->
+      <details class="text-xs text-slate-500 group">
+        <summary class="cursor-pointer font-medium hover:text-slate-800 flex items-center justify-between list-none">
+          <span class="flex items-center gap-1.5">
+            <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" /></svg>
+            <span>Match Sensitivity (Optional)</span>
+          </span>
+          <span id="thresholdBadge" class="mono text-[11px] font-semibold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded">0.45</span>
+        </summary>
+        <div class="pt-3 pb-1 space-y-2">
+          <input type="range" id="thresholdSlider" min="0.30" max="0.65" step="0.05" value="0.45" oninput="updateThresholdDisplay(this.value)" class="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-indigo-600" />
+          <div class="flex justify-between text-[10px] text-slate-400">
+            <span>More Photos (Lenient 0.30)</span>
+            <span>Balanced (0.45)</span>
+            <span>Exact Match (Strict 0.65)</span>
           </div>
         </div>
       </details>
+
+      <!-- Find Photos Action Button -->
+      <button id="searchBtn" onclick="findPhotos()" class="w-full bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white font-bold py-3.5 px-6 rounded-2xl transition shadow-lg shadow-indigo-500/25 flex items-center justify-center gap-2 text-sm">
+        <svg class="w-4 h-4 text-indigo-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+        <span id="searchBtnText">Find My Photos</span>
+      </button>
+
+      <!-- Loading State Indicator -->
+      <div id="searchLoader" class="hidden text-center py-4 space-y-2">
+        <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-indigo-50 text-indigo-700 text-xs font-semibold">
+          <svg class="animate-spin h-4 w-4 text-indigo-600" viewBox="0 0 24 24" fill="none">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+          </svg>
+          <span>Scanning photos for your face...</span>
+        </div>
+        <p class="text-[11px] text-slate-400">Comparing face embeddings with high precision</p>
+      </div>
+
     </div>
 
-    <!-- Gallery Results -->
-    <div class="mt-12">
-      <div class="flex justify-between items-center mb-4">
-        <h2 class="text-xl font-semibold text-gray-900" id="resultCount">Photos Found: 0</h2>
+    <!-- Gallery Results Section -->
+    <div id="resultsSection" class="hidden mt-12 space-y-6">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-200">
+        <div>
+          <h2 id="resultHeading" class="text-xl font-bold text-slate-900">Your Photos</h2>
+          <p id="resultSubheading" class="text-xs text-slate-500 mt-0.5">Click any photo to view in high resolution</p>
+        </div>
+        <span id="resultCountBadge" class="mono text-xs font-bold px-3 py-1 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-100">0 Photos</span>
       </div>
-      <div id="gallery" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4"></div>
+
+      <!-- Photo Grid -->
+      <div id="galleryGrid" class="grid grid-cols-2 sm:grid-cols-3 gap-4 sm:gap-6"></div>
+
+      <!-- Empty State -->
+      <div id="emptyResults" class="hidden text-center py-12 bg-white rounded-3xl border border-slate-100 p-8 space-y-3">
+        <div class="w-12 h-12 mx-auto rounded-full bg-slate-100 text-slate-400 flex items-center justify-center">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+        </div>
+        <h3 class="text-sm font-bold text-slate-800">No Matching Photos Found</h3>
+        <p class="text-xs text-slate-500 max-w-sm mx-auto">
+          We couldn't detect your face in the current event album. Try uploading a clearer selfie with good lighting, or adjust the Match Sensitivity slider.
+        </p>
+      </div>
+    </div>
+  </main>
+
+  <!-- Lightbox Modal for Full-Screen Preview -->
+  <div id="lightboxModal" class="fixed inset-0 z-50 bg-slate-950/95 hidden flex items-center justify-center p-4 backdrop-blur-md" onclick="closeLightbox(event)">
+    <div class="relative max-w-4xl max-h-[90vh] flex flex-col items-center" onclick="event.stopPropagation()">
+      <button onclick="closeLightbox()" class="absolute -top-10 right-0 text-slate-300 hover:text-white p-1 text-sm font-bold flex items-center gap-1">
+        <span>Close</span> &times;
+      </button>
+      <img id="lightboxImg" src="" alt="Full view" class="max-w-full max-h-[78vh] object-contain rounded-xl shadow-2xl" />
+      <div class="mt-4 flex items-center gap-3">
+        <span id="lightboxMatchBadge" class="text-xs font-semibold px-3 py-1 rounded-full bg-white/10 text-white backdrop-blur">Match 98%</span>
+        <a id="lightboxDownloadBtn" href="" target="_blank" download="" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold rounded-xl shadow-lg shadow-indigo-600/30 transition flex items-center gap-1.5">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+          <span>Download High-Res Photo</span>
+        </a>
+      </div>
     </div>
   </div>
 
+  <!-- Footer -->
+  <footer class="border-t border-slate-100 py-6 text-center text-xs text-slate-400 mt-auto">
+    <div class="max-w-5xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
+      <span>Event Photo Finder &copy; 2026 Lyf Ads</span>
+      <div class="flex items-center gap-4">
+        <a href="/admin" class="hover:text-indigo-600 transition">Admin Portal</a>
+      </div>
+    </div>
+  </footer>
+
   <script>
+    let activeEventId = "";
+
+    window.addEventListener("DOMContentLoaded", async () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const urlEvent = urlParams.get("event");
+      await loadEvents(urlEvent);
+    });
+
+    async function loadEvents(preferredEvent = "") {
+      try {
+        const res = await fetch("/api/events");
+        const data = await res.json();
+        const events = data.events || [];
+        const select = document.getElementById("eventIdSelect");
+        select.innerHTML = "";
+
+        if (events.length === 0) {
+          select.innerHTML = `<option value="default">Default Event</option>`;
+          syncEventIdInput("default");
+          return;
+        }
+
+        events.forEach(ev => {
+          const opt = document.createElement("option");
+          opt.value = ev.id;
+          opt.innerText = `${ev.name} (${ev.total_photos} photos)`;
+          select.appendChild(opt);
+        });
+
+        if (preferredEvent && events.some(e => e.id === preferredEvent)) {
+          select.value = preferredEvent;
+        } else if (preferredEvent) {
+          // Add preferred event even if not in list yet
+          const opt = document.createElement("option");
+          opt.value = preferredEvent;
+          opt.innerText = preferredEvent;
+          select.appendChild(opt);
+          select.value = preferredEvent;
+        } else {
+          select.value = events[0].id;
+        }
+
+        syncEventIdInput(select.value);
+      } catch (err) {
+        console.error("Error loading events:", err);
+      }
+    }
+
+    function syncEventIdInput(val) {
+      activeEventId = val;
+      document.getElementById("eventId").value = val;
+    }
+
+    function handleSelfieSelected(input) {
+      if (input.files && input.files[0]) {
+        const file = input.files[0];
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          document.getElementById("selfiePreviewImg").src = e.target.result;
+          document.getElementById("selfieEmptyState").classList.add("hidden");
+          document.getElementById("selfiePreviewState").classList.remove("hidden");
+        };
+        reader.readAsDataURL(file);
+      }
+    }
+
+    function updateThresholdDisplay(val) {
+      document.getElementById("thresholdBadge").innerText = val;
+    }
+
     async function findPhotos() {
       const eventId = document.getElementById("eventId").value.trim();
       const fileInput = document.getElementById("selfieInput");
-      const loader = document.getElementById("loader");
-      const gallery = document.getElementById("gallery");
-      const resultCount = document.getElementById("resultCount");
+      const searchBtn = document.getElementById("searchBtn");
+      const loader = document.getElementById("searchLoader");
+      const resultsSection = document.getElementById("resultsSection");
+      const gallery = document.getElementById("galleryGrid");
+      const emptyResults = document.getElementById("emptyResults");
+      const resultCountBadge = document.getElementById("resultCountBadge");
 
-      if (!eventId || !fileInput.files[0]) {
-        alert("Please provide both Event ID and a selfie image.");
+      if (!eventId) {
+        alert("Please select an event.");
+        return;
+      }
+      if (!fileInput.files || !fileInput.files[0]) {
+        alert("Please take or upload a selfie first.");
         return;
       }
 
+      searchBtn.disabled = true;
+      searchBtn.classList.add("opacity-50", "cursor-not-allowed");
       loader.classList.remove("hidden");
+      resultsSection.classList.remove("hidden");
+      emptyResults.classList.add("hidden");
       gallery.innerHTML = "";
 
       const formData = new FormData();
       formData.append("selfie", fileInput.files[0]);
-      const threshold = document.getElementById("thresholdSlider") ? document.getElementById("thresholdSlider").value : "0.45";
+      const threshold = document.getElementById("thresholdSlider").value;
       formData.append("threshold", threshold);
 
       try {
-        const res = await fetch(`/api/events/${eventId}/search`, {
+        const res = await fetch(`/api/events/${encodeURIComponent(eventId)}/search`, {
           method: "POST",
-          body: formData,
+          body: formData
         });
         const data = await res.json();
+
         loader.classList.add("hidden");
+        searchBtn.disabled = false;
+        searchBtn.classList.remove("opacity-50", "cursor-not-allowed");
 
         if (data.results && data.results.length > 0) {
-          resultCount.innerText = `Photos Found: ${data.results.length}`;
+          resultCountBadge.innerText = `${data.results.length} Photos`;
+          emptyResults.classList.add("hidden");
+
           data.results.forEach(item => {
             const card = document.createElement("div");
-            card.className = "group relative rounded-xl overflow-hidden border border-gray-200 bg-white shadow-sm hover:shadow-md transition duration-200";
+            card.className = "group relative rounded-2xl overflow-hidden bg-white border border-slate-200/80 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col";
+
             const previewUrl = item.preview_url || item.url;
             const downloadUrl = item.download_url || item.url;
+            const matchPct = Math.round(item.similarity_score * 100);
             const isGDrive = downloadUrl && downloadUrl.includes("drive.google.com");
 
             card.innerHTML = `
-              <div class="relative overflow-hidden bg-gray-100 aspect-[3/4]">
-                <img src="${previewUrl}" alt="${item.file_name}" loading="lazy" class="w-full h-full object-cover object-top group-hover:scale-105 transition duration-300" />
-                <span class="absolute top-2 right-2 bg-black/60 backdrop-blur-sm text-white text-[10px] px-2 py-0.5 rounded-full font-medium shadow">
-                  Match ${(item.similarity_score * 100).toFixed(0)}%
+              <div class="relative overflow-hidden bg-slate-100 aspect-[3/4] cursor-pointer" onclick="openLightbox('${previewUrl}', '${downloadUrl}', '${item.file_name}', ${matchPct})">
+                <img src="${previewUrl}" alt="${item.file_name}" loading="lazy" class="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-500 ease-out" />
+                <div class="absolute inset-0 bg-black/10 group-hover:bg-black/0 transition"></div>
+                
+                <span class="absolute top-2.5 right-2.5 bg-slate-950/70 backdrop-blur-md text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm">
+                  ${matchPct}% match
                 </span>
+
                 ${isGDrive ? `
-                <span class="absolute bottom-2 left-2 bg-emerald-600/90 text-white text-[9px] px-1.5 py-0.5 rounded font-medium shadow flex items-center gap-1">
-                  ☁️ Full-Res Original
+                <span class="absolute bottom-2.5 left-2.5 bg-emerald-600/90 backdrop-blur-sm text-white text-[9px] font-semibold px-2 py-0.5 rounded-md shadow-sm flex items-center gap-1">
+                  ☁️ High-Res
                 </span>
                 ` : ''}
-              </div>
-              <div class="p-3 bg-white flex flex-col gap-2">
-                <div class="flex justify-between items-center text-[11px] text-gray-500 font-mono truncate">
-                  <span class="truncate" title="${item.file_name}">${item.file_name}</span>
+
+                <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/20 backdrop-blur-[2px]">
+                  <span class="p-2 rounded-full bg-white/90 text-slate-800 shadow-md transform scale-90 group-hover:scale-100 transition">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v6m3-3H7" /></svg>
+                  </span>
                 </div>
-                <a href="${downloadUrl}" download="${item.file_name}" target="_blank"
-                   class="w-full text-center py-1.5 px-3 text-xs font-semibold rounded-lg ${isGDrive ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-blue-600 hover:bg-blue-700'} text-white transition-colors flex items-center justify-center gap-1.5 shadow-sm">
-                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-                  ${isGDrive ? "⬇️ Download High-Res Original" : "⬇️ Download Photo"}
+              </div>
+
+              <div class="p-3 bg-white flex flex-col gap-2 flex-1 justify-between">
+                <div class="text-[11px] font-medium text-slate-500 truncate" title="${item.file_name}">
+                  ${item.file_name}
+                </div>
+                <a href="${downloadUrl}" download="${item.file_name}" target="_blank" class="w-full py-2 px-3 text-xs font-semibold rounded-xl ${isGDrive ? 'bg-emerald-600 hover:bg-emerald-500 text-white' : 'bg-slate-900 hover:bg-slate-800 text-white'} transition flex items-center justify-center gap-1.5 shadow-sm">
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+                  <span>${isGDrive ? "Download Original" : "Download"}</span>
                 </a>
               </div>
             `;
             gallery.appendChild(card);
           });
+
+          // Smooth scroll down to results
+          resultsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
         } else {
-          resultCount.innerText = "Photos Found: 0";
-          gallery.innerHTML = `<p class="col-span-full text-center text-gray-500">No matching photos found for this event.</p>`;
+          resultCountBadge.innerText = `0 Photos`;
+          emptyResults.classList.remove("hidden");
         }
       } catch (err) {
         loader.classList.add("hidden");
-        alert("Failed to process the request. Check server console.");
+        searchBtn.disabled = false;
+        searchBtn.classList.remove("opacity-50", "cursor-not-allowed");
+        alert("Failed to search photos. Please check your network connection.");
       }
     }
 
-    async function indexEventPhotos() {
-      const eventId = document.getElementById("eventId").value.trim();
-      if (!eventId) {
-        alert("Please enter an Event Identifier.");
-        return;
-      }
+    // Lightbox Modal Functions
+    function openLightbox(previewUrl, downloadUrl, fileName, matchPct) {
+      const modal = document.getElementById("lightboxModal");
+      const img = document.getElementById("lightboxImg");
+      const badge = document.getElementById("lightboxMatchBadge");
+      const dlBtn = document.getElementById("lightboxDownloadBtn");
 
-      const indexBtn = document.getElementById("indexBtn");
-      indexBtn.innerText = "⏳ Indexing...";
-      indexBtn.disabled = true;
+      img.src = previewUrl;
+      badge.innerText = `Match ${matchPct}%`;
+      dlBtn.href = downloadUrl;
+      dlBtn.setAttribute("download", fileName);
 
-      try {
-        const res = await fetch(`/api/events/${eventId}/index?force=true`, { method: "POST" });
-        const data = await res.json();
-        if (res.ok) {
-          alert(`Successfully re-indexed '${eventId}'!\nProcessed: ${data.images_processed || data.images_in_folder || 0} images\nFaces Indexed: ${data.faces_indexed || 0}`);
-        } else {
-          alert(`Indexing failed: ${data.detail || "Unknown error"}`);
-        }
-      } catch (err) {
-        alert("Network or server error while indexing.");
-      } finally {
-        indexBtn.innerText = "↻ Re-index Folder Photos";
-        indexBtn.disabled = false;
-        checkEventStatus();
-      }
+      modal.classList.remove("hidden");
     }
 
-    let progressInterval = null;
-
-    function startProgressPolling(eventId) {
-      if (progressInterval) clearInterval(progressInterval);
-      const progContainer = document.getElementById("gdriveProgressContainer");
-      const progBar = document.getElementById("gdriveProgressBar");
-      const percentBadge = document.getElementById("gdrivePercentBadge");
-      const progMsg = document.getElementById("gdriveProgressMsg");
-      const progCount = document.getElementById("gdriveProgressCount");
-      const resultStats = document.getElementById("gdriveResultStats");
-      const btn = document.getElementById("gdriveImportBtn");
-      const spinner = document.getElementById("gdriveSpinner");
-      const heading = document.getElementById("gdriveStatusHeading");
-
-      progContainer.classList.remove("hidden");
-
-      progressInterval = setInterval(async () => {
-        try {
-          const res = await fetch(`/api/events/${eventId}/import-progress`);
-          if (!res.ok) return;
-          const data = await res.json();
-
-          if (data.status === "in_progress") {
-            btn.disabled = true;
-            btn.innerText = "⏳ Importing in background...";
-            spinner.classList.remove("hidden");
-            heading.innerText = "Importing from Drive...";
-            const pct = Math.min(100, Math.max(0, data.percent || 0));
-            progBar.style.width = `${pct}%`;
-            progBar.className = "bg-gradient-to-r from-blue-500 to-emerald-500 h-2.5 rounded-full transition-all duration-300 ease-out";
-            percentBadge.innerText = `${pct}%`;
-            percentBadge.className = "font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded text-xs";
-            progMsg.innerText = data.message || "Processing photos...";
-            if (data.total_count > 0) {
-              progCount.innerText = `${data.downloaded_count || 0} / ${data.total_count}`;
-            }
-          } else if (data.status === "completed") {
-            clearInterval(progressInterval);
-            progressInterval = null;
-            btn.disabled = false;
-            btn.innerText = "Import & Index from Drive";
-            spinner.classList.add("hidden");
-            heading.innerText = "Import Complete";
-            progBar.style.width = "100%";
-            progBar.className = "bg-emerald-500 h-2.5 rounded-full transition-all duration-300 ease-out";
-            percentBadge.innerText = "100%";
-            percentBadge.className = "font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded text-xs";
-            progMsg.innerText = data.message || "All photos imported and indexed successfully!";
-            resultStats.className = "pt-1 text-[11px] font-medium text-emerald-700 block";
-            resultStats.innerText = `✅ ${data.message}`;
-            document.getElementById("gdriveUrlInput").value = "";
-            checkEventStatus();
-          } else if (data.status === "error") {
-            clearInterval(progressInterval);
-            progressInterval = null;
-            btn.disabled = false;
-            btn.innerText = "Import & Index from Drive";
-            spinner.classList.add("hidden");
-            heading.innerText = "Import Failed";
-            progBar.className = "bg-red-500 h-2.5 rounded-full";
-            percentBadge.className = "font-bold text-red-700 bg-red-100 px-2 py-0.5 rounded text-xs";
-            progMsg.innerText = data.error || data.message || "An error occurred during import.";
-            resultStats.className = "pt-1 text-[11px] font-medium text-red-600 block";
-            resultStats.innerText = `❌ ${data.error || data.message}`;
-          }
-        } catch (e) {
-          console.error("Progress poll error:", e);
-        }
-      }, 800);
+    function closeLightbox() {
+      document.getElementById("lightboxModal").classList.add("hidden");
     }
 
-    async function checkEventStatus() {
-      const eventId = document.getElementById("eventId").value.trim();
-      const statsEl = document.getElementById("eventStats");
-      if (!eventId || !statsEl) return;
-
-      try {
-        const res = await fetch(`/api/events/${eventId}/status`);
-        if (res.ok) {
-          const data = await res.json();
-          statsEl.innerText = `Photos in folder: ${data.total_photos_in_folder} | Faces indexed in DB: ${data.total_faces_indexed}`;
-        } else {
-          statsEl.innerText = `Event folder '${eventId}' not initialized yet`;
-        }
-
-        // Auto-resume progress display if import is currently running
-        if (!progressInterval) {
-          const pRes = await fetch(`/api/events/${eventId}/import-progress`);
-          if (pRes.ok) {
-            const pData = await pRes.json();
-            if (pData.status === "in_progress") {
-              startProgressPolling(eventId);
-            }
-          }
-        }
-      } catch (e) {
-        statsEl.innerText = "Server connecting...";
-      }
-    }
-
-    async function uploadBatchPhotos() {
-      const eventId = document.getElementById("eventId").value.trim();
-      const fileInput = document.getElementById("batchUploadInput");
-      const msg = document.getElementById("batchUploadMsg");
-      const btn = document.getElementById("batchUploadBtn");
-
-      if (!eventId || !fileInput.files.length) {
-        alert("Please select one or more photos to upload.");
-        return;
-      }
-
-      btn.disabled = true;
-      btn.innerText = `Uploading ${fileInput.files.length} photo(s)...`;
-      msg.classList.remove("hidden");
-      msg.innerText = "Uploading to server...";
-
-      const formData = new FormData();
-      for (let i = 0; i < fileInput.files.length; i++) {
-        formData.append("files", fileInput.files[i]);
-      }
-
-      try {
-        const res = await fetch(`/api/events/${eventId}/upload`, {
-          method: "POST",
-          body: formData
-        });
-        const data = await res.json();
-        if (res.ok) {
-          msg.innerText = `Uploaded ${data.uploaded_count} photos! Auto-indexing started.`;
-          fileInput.value = "";
-          setTimeout(checkEventStatus, 1500);
-        } else {
-          msg.innerText = "Upload failed: " + (data.detail || "Error");
-        }
-      } catch (err) {
-        msg.innerText = "Network error during upload.";
-      } finally {
-        btn.disabled = false;
-        btn.innerText = "Upload Selected Photos";
-      }
-    }
-
-    async function importFromGDrive() {
-      const eventId = document.getElementById("eventId").value.trim();
-      const driveUrl = document.getElementById("gdriveUrlInput").value.trim();
-      const btn = document.getElementById("gdriveImportBtn");
-      const progContainer = document.getElementById("gdriveProgressContainer");
-      const progBar = document.getElementById("gdriveProgressBar");
-      const percentBadge = document.getElementById("gdrivePercentBadge");
-      const progMsg = document.getElementById("gdriveProgressMsg");
-      const progCount = document.getElementById("gdriveProgressCount");
-      const resultStats = document.getElementById("gdriveResultStats");
-
-      if (!eventId || !driveUrl) {
-        alert("Please provide both an Event Identifier and the Google Drive link.");
-        return;
-      }
-
-      btn.disabled = true;
-      btn.innerText = "⏳ Connecting to Drive...";
-      progContainer.classList.remove("hidden");
-      resultStats.classList.add("hidden");
-      progBar.style.width = "5%";
-      progBar.className = "bg-gradient-to-r from-blue-500 to-emerald-500 h-2.5 rounded-full transition-all duration-300 ease-out";
-      percentBadge.innerText = "5%";
-      percentBadge.className = "font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded text-xs";
-      progMsg.innerText = "Connecting to Google Drive and scanning folder...";
-      progCount.innerText = "0 / --";
-
-      const formData = new FormData();
-      formData.append("drive_url", driveUrl);
-
-      try {
-        const res = await fetch(`/api/events/${eventId}/import-gdrive`, {
-          method: "POST",
-          body: formData
-        });
-        const data = await res.json();
-        if (res.ok) {
-          startProgressPolling(eventId);
-        } else {
-          btn.disabled = false;
-          btn.innerText = "Import & Index from Drive";
-          alert("Import failed to start: " + (data.detail || data.message || "Unknown error"));
-        }
-      } catch (err) {
-        btn.disabled = false;
-        btn.innerText = "Import & Index from Drive";
-        alert("Network error: Could not reach the server.");
-      }
-    }
-
-    // Auto-poll status on load and periodically
-    window.addEventListener("DOMContentLoaded", () => {
-      checkEventStatus();
-      setInterval(checkEventStatus, 8000);
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") closeLightbox();
     });
   </script>
 </body>

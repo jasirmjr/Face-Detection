@@ -82,18 +82,69 @@ async def get_photo(event_id: str, filename: str):
 def home():
     return FileResponse("static/index.html")
 
+@app.get("/admin")
+def admin_page():
+    return FileResponse("static/admin.html")
+
+@app.get("/api/events")
+async def list_events():
+    """Lists all available events with photo and indexed face counts."""
+    eng = get_engine()
+    events = []
+    if os.path.exists(STORAGE_DIR):
+        valid_exts = ('.jpg', '.jpeg', '.png', '.webp', '.heic', '.heif')
+        for item in sorted(os.listdir(STORAGE_DIR)):
+            folder_path = os.path.join(STORAGE_DIR, item)
+            if os.path.isdir(folder_path) and not item.startswith('.'):
+                photo_count = sum(
+                    1 for root, _, files in os.walk(folder_path) 
+                    for f in files 
+                    if not f.startswith(('._', '.')) and f.lower().endswith(valid_exts)
+                )
+                faces_count = eng.get_indexed_count(item) if eng else 0
+                events.append({
+                    "id": item,
+                    "name": item.replace("-", " ").replace("_", " ").title(),
+                    "total_photos": photo_count,
+                    "faces_indexed": faces_count
+                })
+    return {"events": events}
+
+@app.post("/api/events")
+async def create_event(event_id: str = Form(...)):
+    """Creates a new event folder."""
+    clean_id = event_id.strip()
+    clean_id = "".join(c if (c.isalnum() or c in ('-', '_', ' ')) else '-' for c in clean_id).strip()
+    if not clean_id:
+        raise HTTPException(status_code=400, detail="Event name must contain valid characters.")
+    
+    event_folder = os.path.join(STORAGE_DIR, clean_id)
+    os.makedirs(event_folder, exist_ok=True)
+    return {
+        "status": "success",
+        "event_id": clean_id,
+        "message": f"Event '{clean_id}' created successfully."
+    }
+
 @app.get("/api/events/{event_id}/status")
 async def event_status(event_id: str):
+    eng = get_engine()
     event_folder = os.path.join(STORAGE_DIR, event_id)
     valid_exts = ('.jpg', '.jpeg', '.png', '.webp', '.heic', '.heif')
-    folder_files_count = len([f for f in os.listdir(event_folder) if f.lower().endswith(valid_exts)]) if os.path.exists(event_folder) else 0
-    faces_count = engine.get_indexed_count(event_id) if engine else 0
+    folder_files_count = 0
+    if os.path.exists(event_folder):
+        folder_files_count = sum(
+            1 for root, _, files in os.walk(event_folder) 
+            for f in files 
+            if not f.startswith(('._', '.')) and f.lower().endswith(valid_exts)
+        )
+    faces_count = eng.get_indexed_count(event_id) if eng else 0
     return {
         "event_id": event_id,
         "folder_exists": os.path.exists(event_folder),
         "total_photos_in_folder": folder_files_count,
         "total_faces_indexed": faces_count,
-        "engine_ready": engine is not None,
+        "engine_ready": eng is not None,
         "watcher": watcher.get_status() if watcher else {"active": False}
     }
 

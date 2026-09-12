@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Portal — Event Face Finder</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Plus Jakarta Sans', sans-serif; }
+    .mono { font-family: 'JetBrains Mono', monospace; }
+  </style>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col antialiased selection:bg-indigo-500 selection:text-white">
+
+  <!-- Top Navigation Bar -->
+  <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-40">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="h-9 w-9 rounded-xl bg-gradient-to-tr from-indigo-500 to-violet-500 flex items-center justify-center shadow-lg shadow-indigo-500/25">
+          <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+          </svg>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="font-bold text-base tracking-tight text-white">Lyf Ads</span>
+            <span class="text-xs px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-400 font-medium border border-indigo-500/20">Admin Console</span>
+          </div>
+          <p class="text-[11px] text-slate-400">Event Face Indexing & Photo Management</p>
+        </div>
+      </div>
+
+      <!-- Quick Actions / Guest Link -->
+      <div class="flex items-center gap-3">
+        <button onclick="openGuestView()" class="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-700 transition border border-slate-700 shadow-sm" title="Preview guest photo search page for selected event">
+          <svg class="w-3.5 h-3.5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+          </svg>
+          <span>Open Guest View</span>
+        </button>
+        <a href="/" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-500 transition shadow-sm shadow-indigo-600/30">
+          <span>← Back to App</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content Container -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 w-full space-y-6">
+
+    <!-- Top Event Switcher & Overview Stats -->
+    <div class="bg-slate-800/60 border border-slate-700/70 rounded-2xl p-5 shadow-xl backdrop-blur-sm">
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <!-- Event Selector -->
+        <div class="flex-1 max-w-xl">
+          <label class="block text-xs font-medium text-slate-400 mb-1.5">ACTIVE EVENT</label>
+          <div class="flex items-center gap-2">
+            <div class="relative flex-1">
+              <select id="eventSelect" onchange="onEventChanged()" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2 text-sm font-semibold text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition appearance-none cursor-pointer">
+                <option value="">Loading events...</option>
+              </select>
+              <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-400">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+              </div>
+            </div>
+            <button onclick="showCreateEventModal()" class="px-3.5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-semibold transition flex items-center gap-1.5 shrink-0 shadow-sm shadow-indigo-600/30">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
+              <span>New Event</span>
+            </button>
+            <button onclick="refreshEventData()" class="p-2 text-slate-400 hover:text-white bg-slate-900 border border-slate-700 rounded-xl transition" title="Refresh event list & metrics">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Metric Badges -->
+        <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 md:gap-4 shrink-0">
+          <div class="bg-slate-900/80 border border-slate-700/60 rounded-xl p-3 min-w-[110px]">
+            <div class="text-[11px] font-medium text-slate-400">Photos in Folder</div>
+            <div id="statPhotosCount" class="text-xl font-bold text-white mono mt-0.5">-</div>
+          </div>
+          <div class="bg-slate-900/80 border border-slate-700/60 rounded-xl p-3 min-w-[110px]">
+            <div class="text-[11px] font-medium text-slate-400">Faces Indexed</div>
+            <div id="statFacesCount" class="text-xl font-bold text-emerald-400 mono mt-0.5">-</div>
+          </div>
+          <div class="bg-slate-900/80 border border-slate-700/60 rounded-xl p-3 col-span-2 sm:col-span-1 min-w-[110px]">
+            <div class="text-[11px] font-medium text-slate-400">AI Engine</div>
+            <div id="statEngineBadge" class="flex items-center gap-1.5 mt-1 text-xs font-semibold text-emerald-400">
+              <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+              <span>Online</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Share Link Banner -->
+      <div class="mt-4 pt-3.5 border-t border-slate-700/60 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 text-xs text-slate-300">
+        <div class="flex items-center gap-2">
+          <span class="text-slate-400">Guest Link:</span>
+          <span id="guestShareUrl" class="mono text-indigo-300 font-medium truncate max-w-xs sm:max-w-md bg-slate-900/70 px-2 py-1 rounded border border-slate-700">Loading...</span>
+        </div>
+        <div class="flex items-center gap-2 shrink-0">
+          <button onclick="copyGuestLink()" class="px-2.5 py-1 bg-slate-700 hover:bg-slate-600 text-white rounded text-[11px] font-medium transition flex items-center gap-1">
+            <svg class="w-3 h-3 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
+            <span id="copyBtnText">Copy Link</span>
+          </button>
+          <button onclick="toggleQrModal()" class="px-2.5 py-1 bg-slate-700 hover:bg-slate-600 text-white rounded text-[11px] font-medium transition flex items-center gap-1">
+            <svg class="w-3 h-3 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" /></svg>
+            <span>Show QR</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Two Column Dashboard Grid -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+      <!-- Left Column: Google Drive Import Hub -->
+      <div class="bg-slate-800/60 border border-slate-700/70 rounded-2xl p-6 shadow-xl flex flex-col justify-between">
+        <div>
+          <div class="flex items-center justify-between mb-4">
+            <div class="flex items-center gap-2.5">
+              <div class="p-2 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                </svg>
+              </div>
+              <div>
+                <h2 class="text-base font-bold text-white">Google Drive Photo Importer</h2>
+                <p class="text-xs text-slate-400">Sync entire camera photo folders automatically</p>
+              </div>
+            </div>
+            <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+              ⚡ High-Res Preservation
+            </span>
+          </div>
+
+          <p class="text-xs text-slate-300 mb-4 leading-relaxed">
+            Paste the public link of your Google Drive folder containing event photos. The server will download, optimize, and index all faces into the vector database.
+          </p>
+
+          <div class="space-y-3">
+            <div>
+              <label class="block text-xs font-semibold text-slate-300 mb-1">Google Drive Folder Link</label>
+              <input type="text" id="gdriveUrlInput" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition mono" placeholder="https://drive.google.com/drive/folders/1aBcDeFgHiJkLmNoP..." />
+              <p class="text-[11px] text-slate-400 mt-1 flex items-center gap-1">
+                <svg class="w-3.5 h-3.5 text-amber-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                <span>Ensure folder access is set to <strong>"Anyone with the link can view"</strong></span>
+              </p>
+            </div>
+
+            <button type="button" onclick="startGDriveImport()" id="gdriveImportBtn" class="w-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-semibold py-2.5 px-4 rounded-xl text-xs transition shadow-lg shadow-emerald-600/20 flex items-center justify-center gap-2">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
+              <span id="gdriveBtnLabel">Start Google Drive Sync</span>
+            </button>
+          </div>
+
+          <!-- Real-Time Progress Bar Component -->
+          <div id="gdriveProgressContainer" class="hidden mt-4 bg-slate-900/90 rounded-xl p-4 border border-slate-700 space-y-3">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <svg id="gdriveSpinner" class="animate-spin h-4 w-4 text-emerald-400" viewBox="0 0 24 24" fill="none">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                </svg>
+                <span id="gdriveHeading" class="text-xs font-semibold text-white">Importing from Google Drive...</span>
+              </div>
+              <span id="gdrivePercentBadge" class="mono text-xs font-bold px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">0%</span>
+            </div>
+
+            <!-- Track -->
+            <div class="w-full bg-slate-800 rounded-full h-2.5 overflow-hidden">
+              <div id="gdriveProgressBar" class="h-2.5 rounded-full bg-gradient-to-r from-emerald-500 to-indigo-500 transition-all duration-300 ease-out" style="width: 0%"></div>
+            </div>
+
+            <!-- Stats Subtext -->
+            <div class="flex items-center justify-between text-[11px] text-slate-400">
+              <span id="gdriveProgressMsg" class="mono truncate max-w-[220px] text-slate-300">Connecting to Drive...</span>
+              <span id="gdriveProgressCount" class="mono text-slate-300">0 / 0</span>
+            </div>
+
+            <div id="gdriveResultStats" class="hidden text-xs text-emerald-400 font-medium pt-1 border-t border-slate-800 flex items-center gap-1.5">
+              <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+              <span id="gdriveResultStatsText">Finished!</span>
+            </div>
+          </div>
+        </div>
+
+        <div id="gdriveStatusNotice" class="hidden mt-3 text-xs p-2.5 rounded-lg border"></div>
+      </div>
+
+      <!-- Right Column: Direct Photo Upload & Event Tools -->
+      <div class="space-y-6">
+
+        <!-- Card: Direct Device Photo Upload -->
+        <div class="bg-slate-800/60 border border-slate-700/70 rounded-2xl p-6 shadow-xl">
+          <div class="flex items-center gap-2.5 mb-4">
+            <div class="p-2 rounded-lg bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+            </div>
+            <div>
+              <h2 class="text-base font-bold text-white">Upload Photos from Device</h2>
+              <p class="text-xs text-slate-400">Direct upload for camera crew and photographers</p>
+            </div>
+          </div>
+
+          <div class="border-2 border-dashed border-slate-700 hover:border-indigo-500/70 rounded-xl p-6 text-center transition cursor-pointer bg-slate-900/40 relative group" onclick="document.getElementById('devicePhotosInput').click()">
+            <input type="file" id="devicePhotosInput" multiple accept="image/*" class="hidden" onchange="handleDeviceFilesSelected()" />
+            <svg class="w-8 h-8 text-slate-500 group-hover:text-indigo-400 mx-auto mb-2 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+            </svg>
+            <p class="text-xs font-semibold text-slate-200">Drag & drop photos here, or click to browse</p>
+            <p class="text-[11px] text-slate-500 mt-1">Supports JPG, PNG, WEBP, HEIC (Batch selection allowed)</p>
+            <div id="deviceSelectedInfo" class="hidden mt-3 text-xs font-semibold text-indigo-400 bg-indigo-500/10 py-1 px-2.5 rounded-md inline-block border border-indigo-500/20"></div>
+          </div>
+
+          <button type="button" id="deviceUploadBtn" onclick="uploadDevicePhotos()" disabled class="w-full mt-3 bg-slate-700 text-slate-400 cursor-not-allowed font-semibold py-2.5 px-4 rounded-xl text-xs transition flex items-center justify-center gap-2">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+            <span id="deviceUploadBtnText">Select Photos First</span>
+          </button>
+
+          <div id="deviceUploadResult" class="hidden mt-3 text-xs p-3 rounded-xl border"></div>
+        </div>
+
+        <!-- Card: Event Maintenance Tools -->
+        <div class="bg-slate-800/60 border border-slate-700/70 rounded-2xl p-5 shadow-xl">
+          <h3 class="text-xs font-bold tracking-wider text-slate-400 uppercase mb-3">Event Tools & Maintenance</h3>
+          <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+            <div>
+              <p class="text-xs font-medium text-slate-200">Force Re-index Folder</p>
+              <p class="text-[11px] text-slate-400">Re-scans all photos in this event and adds any unindexed faces.</p>
+            </div>
+            <button onclick="reindexEventPhotos()" id="reindexBtn" class="px-3.5 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-xl text-xs font-semibold transition shrink-0 flex items-center justify-center gap-1.5 border border-slate-600">
+              <svg class="w-3.5 h-3.5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
+              <span>Re-index Event</span>
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Available Events List Table -->
+    <div class="bg-slate-800/60 border border-slate-700/70 rounded-2xl p-6 shadow-xl">
+      <div class="flex items-center justify-between mb-4">
+        <div>
+          <h2 class="text-base font-bold text-white">All Events Overview</h2>
+          <p class="text-xs text-slate-400">All photo galleries currently stored on this server</p>
+        </div>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-xs text-slate-300">
+          <thead class="text-[11px] uppercase bg-slate-900/60 text-slate-400 border-b border-slate-700">
+            <tr>
+              <th scope="col" class="px-4 py-3 font-semibold">Event Name</th>
+              <th scope="col" class="px-4 py-3 font-semibold">Folder ID</th>
+              <th scope="col" class="px-4 py-3 font-semibold">Photos</th>
+              <th scope="col" class="px-4 py-3 font-semibold">Faces Indexed</th>
+              <th scope="col" class="px-4 py-3 font-semibold text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="eventsTableBody" class="divide-y divide-slate-700/60">
+            <tr><td colspan="5" class="px-4 py-6 text-center text-slate-500">Loading events...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Create Event Modal -->
+  <div id="createEventModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
+      <div class="flex items-center justify-between">
+        <h3 class="text-base font-bold text-white">Create New Event</h3>
+        <button onclick="hideCreateEventModal()" class="text-slate-400 hover:text-white p-1">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+        </button>
+      </div>
+      <p class="text-xs text-slate-400">
+        Enter a name for the event (e.g. <em>Summer Wedding 2026</em> or <em>annual-meet</em>). This creates a dedicated gallery and face-index vector space.
+      </p>
+      <div>
+        <label class="block text-xs font-semibold text-slate-300 mb-1">Event Name / ID</label>
+        <input type="text" id="newEventNameInput" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="e.g. annual-meet" />
+      </div>
+      <div class="flex items-center justify-end gap-2 pt-2">
+        <button onclick="hideCreateEventModal()" class="px-4 py-2 rounded-xl text-xs font-medium text-slate-400 hover:text-white hover:bg-slate-800 transition">Cancel</button>
+        <button onclick="submitCreateEvent()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-semibold transition shadow-sm shadow-indigo-600/30">Create Event</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- QR Code Modal -->
+  <div id="qrModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-xs w-full p-6 shadow-2xl text-center space-y-4">
+      <div class="flex items-center justify-between">
+        <h3 class="text-sm font-bold text-white">Guest QR Code</h3>
+        <button onclick="toggleQrModal()" class="text-slate-400 hover:text-white p-1">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+        </button>
+      </div>
+      <p class="text-xs text-slate-400">Guests can scan this QR code on their phone to find their photos:</p>
+      <div class="bg-white p-3 rounded-xl inline-block shadow-inner">
+        <img id="qrCodeImg" src="" alt="QR Code" class="w-48 h-48 mx-auto" />
+      </div>
+      <div class="text-[11px] mono text-indigo-300 truncate" id="qrLinkText"></div>
+      <button onclick="toggleQrModal()" class="w-full py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-xs font-medium transition">Close</button>
+    </div>
+  </div>
+
+  <footer class="border-t border-slate-800 py-4 text-center text-xs text-slate-500 mt-auto">
+    <span>Event Face Finder &copy; 2026 Lyf Ads. Built with InsightFace & Qdrant.</span>
+  </footer>
+
+  <script>
+    let activeEventId = "";
+    let eventsList = [];
+    let progressInterval = null;
+
+    // Load Events on startup
+    window.addEventListener("DOMContentLoaded", async () => {
+      // Pick up ?event=... query param if provided
+      const params = new URLSearchParams(window.location.search);
+      const urlEvent = params.get("event");
+      await loadEvents(urlEvent);
+    });
+
+    async function loadEvents(preferredEventId = "") {
+      try {
+        const res = await fetch("/api/events");
+        const data = await res.json();
+        eventsList = data.events || [];
+
+        const select = document.getElementById("eventSelect");
+        select.innerHTML = "";
+
+        if (eventsList.length === 0) {
+          select.innerHTML = `<option value="">No events found</option>`;
+          renderEventsTable([]);
+          return;
+        }
+
+        eventsList.forEach(ev => {
+          const opt = document.createElement("option");
+          opt.value = ev.id;
+          opt.innerText = `${ev.name} (${ev.total_photos} photos, ${ev.faces_indexed} faces)`;
+          select.appendChild(opt);
+        });
+
+        // Set active event
+        if (preferredEventId && eventsList.some(e => e.id === preferredEventId)) {
+          select.value = preferredEventId;
+        } else {
+          select.value = eventsList[0].id;
+        }
+        activeEventId = select.value;
+
+        updateEventHeaderInfo();
+        renderEventsTable(eventsList);
+        checkActiveEventStatus();
+      } catch (err) {
+        console.error("Failed to load events:", err);
+      }
+    }
+
+    function onEventChanged() {
+      activeEventId = document.getElementById("eventSelect").value;
+      updateEventHeaderInfo();
+      checkActiveEventStatus();
+    }
+
+    function updateEventHeaderInfo() {
+      const guestUrl = `${window.location.origin}/?event=${encodeURIComponent(activeEventId)}`;
+      document.getElementById("guestShareUrl").innerText = guestUrl;
+      document.getElementById("qrLinkText").innerText = guestUrl;
+      document.getElementById("qrCodeImg").src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(guestUrl)}`;
+    }
+
+    async function checkActiveEventStatus() {
+      if (!activeEventId) return;
+      try {
+        const res = await fetch(`/api/events/${activeEventId}/status`);
+        const data = await res.json();
+        document.getElementById("statPhotosCount").innerText = data.total_photos_in_folder ?? 0;
+        document.getElementById("statFacesCount").innerText = data.total_faces_indexed ?? 0;
+        
+        // Also check if an import is currently in progress
+        checkOngoingImport();
+      } catch (err) {
+        console.error("Failed to check status:", err);
+      }
+    }
+
+    async function refreshEventData() {
+      await loadEvents(activeEventId);
+    }
+
+    function renderEventsTable(events) {
+      const tbody = document.getElementById("eventsTableBody");
+      if (!events || events.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" class="px-4 py-6 text-center text-slate-500">No events yet. Click "+ New Event" to create one.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = events.map(ev => `
+        <tr class="hover:bg-slate-800/40 transition">
+          <td class="px-4 py-3 font-semibold text-white">${ev.name}</td>
+          <td class="px-4 py-3 mono text-slate-400">${ev.id}</td>
+          <td class="px-4 py-3 text-slate-300 mono">${ev.total_photos}</td>
+          <td class="px-4 py-3 text-emerald-400 font-semibold mono">${ev.faces_indexed}</td>
+          <td class="px-4 py-3 text-right space-x-2">
+            <button onclick="switchEvent('${ev.id}')" class="px-2.5 py-1 bg-slate-700 hover:bg-slate-600 text-white rounded text-[11px] font-medium transition">
+              Select
+            </button>
+            <a href="/?event=${encodeURIComponent(ev.id)}" target="_blank" class="px-2.5 py-1 bg-indigo-600/80 hover:bg-indigo-600 text-white rounded text-[11px] font-medium transition">
+              Guest View ↗
+            </a>
+          </td>
+        </tr>
+      `).join("");
+    }
+
+    function switchEvent(id) {
+      document.getElementById("eventSelect").value = id;
+      onEventChanged();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function openGuestView() {
+      if (!activeEventId) return;
+      window.open(`/?event=${encodeURIComponent(activeEventId)}`, "_blank");
+    }
+
+    function copyGuestLink() {
+      const url = document.getElementById("guestShareUrl").innerText;
+      navigator.clipboard.writeText(url);
+      const btn = document.getElementById("copyBtnText");
+      btn.innerText = "Copied! ✓";
+      setTimeout(() => btn.innerText = "Copy Link", 2000);
+    }
+
+    function toggleQrModal() {
+      const modal = document.getElementById("qrModal");
+      modal.classList.toggle("hidden");
+    }
+
+    function showCreateEventModal() {
+      document.getElementById("createEventModal").classList.remove("hidden");
+      document.getElementById("newEventNameInput").focus();
+    }
+
+    function hideCreateEventModal() {
+      document.getElementById("createEventModal").classList.add("hidden");
+      document.getElementById("newEventNameInput").value = "";
+    }
+
+    async function submitCreateEvent() {
+      const input = document.getElementById("newEventNameInput");
+      const name = input.value.trim();
+      if (!name) {
+        alert("Please enter an event name.");
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append("event_id", name);
+
+      try {
+        const res = await fetch("/api/events", {
+          method: "POST",
+          body: formData
+        });
+        const data = await res.json();
+        if (res.ok) {
+          hideCreateEventModal();
+          await loadEvents(data.event_id);
+        } else {
+          alert(`Error: ${data.detail || "Could not create event."}`);
+        }
+      } catch (err) {
+        alert("Failed to create event. Check connection.");
+      }
+    }
+
+    // Google Drive Import Handling
+    async function startGDriveImport() {
+      if (!activeEventId) {
+        alert("Please select or create an event first.");
+        return;
+      }
+      const urlInput = document.getElementById("gdriveUrlInput");
+      const driveUrl = urlInput.value.trim();
+      if (!driveUrl) {
+        alert("Please paste a Google Drive folder link.");
+        return;
+      }
+
+      const btn = document.getElementById("gdriveImportBtn");
+      const label = document.getElementById("gdriveBtnLabel");
+      btn.disabled = true;
+      label.innerText = "Starting Import...";
+
+      const formData = new FormData();
+      formData.append("drive_url", driveUrl);
+
+      try {
+        const res = await fetch(`/api/events/${activeEventId}/import-gdrive`, {
+          method: "POST",
+          body: formData
+        });
+        const data = await res.json();
+        if (res.ok) {
+          startProgressPolling(activeEventId);
+        } else {
+          alert(data.detail || "Failed to start Google Drive import.");
+          btn.disabled = false;
+          label.innerText = "Start Google Drive Sync";
+        }
+      } catch (err) {
+        alert("Network error starting Google Drive import.");
+        btn.disabled = false;
+        label.innerText = "Start Google Drive Sync";
+      }
+    }
+
+    async function checkOngoingImport() {
+      if (!activeEventId) return;
+      try {
+        const res = await fetch(`/api/events/${activeEventId}/import-progress`);
+        const data = await res.json();
+        if (data.status === "in_progress") {
+          startProgressPolling(activeEventId);
+        }
+      } catch (e) {}
+    }
+
+    function startProgressPolling(eventId) {
+      if (progressInterval) clearInterval(progressInterval);
+      const container = document.getElementById("gdriveProgressContainer");
+      const bar = document.getElementById("gdriveProgressBar");
+      const badge = document.getElementById("gdrivePercentBadge");
+      const msg = document.getElementById("gdriveProgressMsg");
+      const count = document.getElementById("gdriveProgressCount");
+      const resultStats = document.getElementById("gdriveResultStats");
+      const resultStatsText = document.getElementById("gdriveResultStatsText");
+      const spinner = document.getElementById("gdriveSpinner");
+      const heading = document.getElementById("gdriveHeading");
+      const btn = document.getElementById("gdriveImportBtn");
+      const label = document.getElementById("gdriveBtnLabel");
+
+      container.classList.remove("hidden");
+      resultStats.classList.add("hidden");
+      btn.disabled = true;
+      label.innerText = "Syncing in Progress...";
+
+      progressInterval = setInterval(async () => {
+        try {
+          const res = await fetch(`/api/events/${eventId}/import-progress`);
+          if (!res.ok) return;
+          const data = await res.json();
+
+          if (data.status === "in_progress") {
+            spinner.classList.remove("hidden");
+            heading.innerText = "Importing from Drive...";
+            const pct = Math.min(100, Math.max(0, data.percent || 0));
+            bar.style.width = `${pct}%`;
+            badge.innerText = `${pct}%`;
+            msg.innerText = data.current_file ? `File: ${data.current_file}` : data.message;
+            count.innerText = `${data.downloaded_count || 0} / ${data.total_count || 0}`;
+          } else if (data.status === "completed") {
+            clearInterval(progressInterval);
+            spinner.classList.add("hidden");
+            heading.innerText = "Import Finished!";
+            bar.style.width = "100%";
+            badge.innerText = "100%";
+            msg.innerText = data.message;
+            count.innerText = `${data.downloaded_count} photos`;
+
+            resultStats.classList.remove("hidden");
+            resultStatsText.innerText = `Synced ${data.downloaded_count} photos, indexed ${data.faces_indexed || 0} faces!`;
+
+            btn.disabled = false;
+            label.innerText = "Start Google Drive Sync";
+            checkActiveEventStatus();
+          } else if (data.status === "error") {
+            clearInterval(progressInterval);
+            spinner.classList.add("hidden");
+            heading.innerText = "Import Failed";
+            bar.style.width = "100%";
+            bar.className = "h-2.5 rounded-full bg-rose-500";
+            badge.innerText = "Error";
+            badge.className = "mono text-xs font-bold px-2 py-0.5 rounded bg-rose-500/10 text-rose-400 border border-rose-500/20";
+            msg.innerText = data.error || data.message;
+
+            btn.disabled = false;
+            label.innerText = "Start Google Drive Sync";
+          }
+        } catch (err) {
+          console.error("Progress polling error:", err);
+        }
+      }, 1500);
+    }
+
+    // Direct Device Photo Upload Handling
+    function handleDeviceFilesSelected() {
+      const input = document.getElementById("devicePhotosInput");
+      const info = document.getElementById("deviceSelectedInfo");
+      const btn = document.getElementById("deviceUploadBtn");
+      const btnText = document.getElementById("deviceUploadBtnText");
+
+      if (input.files.length > 0) {
+        info.innerText = `Selected ${input.files.length} photo(s)`;
+        info.classList.remove("hidden");
+        btn.disabled = false;
+        btn.className = "w-full mt-3 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-2.5 px-4 rounded-xl text-xs transition flex items-center justify-center gap-2 shadow-lg shadow-indigo-600/20";
+        btnText.innerText = `Upload & Index ${input.files.length} Photo(s)`;
+      } else {
+        info.classList.add("hidden");
+        btn.disabled = true;
+        btn.className = "w-full mt-3 bg-slate-700 text-slate-400 cursor-not-allowed font-semibold py-2.5 px-4 rounded-xl text-xs transition flex items-center justify-center gap-2";
+        btnText.innerText = "Select Photos First";
+      }
+    }
+
+    async function uploadDevicePhotos() {
+      if (!activeEventId) {
+        alert("Please select an event first.");
+        return;
+      }
+      const input = document.getElementById("devicePhotosInput");
+      if (!input.files || input.files.length === 0) return;
+
+      const btn = document.getElementById("deviceUploadBtn");
+      const btnText = document.getElementById("deviceUploadBtnText");
+      const resultBox = document.getElementById("deviceUploadResult");
+
+      btn.disabled = true;
+      btnText.innerText = `Uploading & Indexing ${input.files.length} Photo(s)...`;
+      resultBox.classList.add("hidden");
+
+      const formData = new FormData();
+      for (const f of input.files) {
+        formData.append("files", f);
+      }
+
+      try {
+        const res = await fetch(`/api/events/${activeEventId}/upload`, {
+          method: "POST",
+          body: formData
+        });
+        const data = await res.json();
+        if (res.ok) {
+          resultBox.className = "mt-3 text-xs p-3 rounded-xl border bg-emerald-500/10 border-emerald-500/20 text-emerald-400";
+          resultBox.innerText = `✓ ${data.message || `Uploaded ${data.uploaded_count} photos and indexed ${data.faces_indexed} faces.`}`;
+          resultBox.classList.remove("hidden");
+          input.value = "";
+          handleDeviceFilesSelected();
+          checkActiveEventStatus();
+        } else {
+          resultBox.className = "mt-3 text-xs p-3 rounded-xl border bg-rose-500/10 border-rose-500/20 text-rose-400";
+          resultBox.innerText = `Error: ${data.detail || "Upload failed."}`;
+          resultBox.classList.remove("hidden");
+          btn.disabled = false;
+          btnText.innerText = "Try Upload Again";
+        }
+      } catch (err) {
+        resultBox.className = "mt-3 text-xs p-3 rounded-xl border bg-rose-500/10 border-rose-500/20 text-rose-400";
+        resultBox.innerText = "Network error during upload.";
+        resultBox.classList.remove("hidden");
+        btn.disabled = false;
+        btnText.innerText = "Try Upload Again";
+      }
+    }
+
+    // Force Re-index Event
+    async function reindexEventPhotos() {
+      if (!activeEventId) return;
+      if (!confirm(`Are you sure you want to re-scan and re-index all photos in '${activeEventId}'?`)) {
+        return;
+      }
+      const btn = document.getElementById("reindexBtn");
+      btn.disabled = true;
+      btn.innerHTML = `<span class="animate-spin inline-block mr-1">↻</span> Indexing...`;
+
+      try {
+        const res = await fetch(`/api/events/${activeEventId}/index?force=true`, { method: "POST" });
+        const data = await res.json();
+        if (res.ok) {
+          alert(`Re-index complete for '${activeEventId}'!\nProcessed: ${data.images_processed || data.images_in_folder || 0} images\nFaces Indexed: ${data.faces_indexed || 0}`);
+        } else {
+          alert(`Indexing failed: ${data.detail || "Unknown error"}`);
+        }
+      } catch (err) {
+        alert("Network or server error while indexing.");
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = `
+          <svg class="w-3.5 h-3.5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
+          <span>Re-index Event</span>
+        `;
+        checkActiveEventStatus();
+      }
+    }
+  </script>
+</body>
+</html>
