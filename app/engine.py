@@ -46,18 +46,26 @@ class FaceEngine:
         # Limit OpenCV threads to prevent thread pool memory explosion on cloud servers
         cv2.setNumThreads(1)
 
-        # Model selection: Defaults to lightweight 'buffalo_s' (<100MB RAM) for cloud free tiers (e.g. Render 512MB)
-        model_name = os.getenv("FACE_MODEL", "buffalo_s")
+        # Model selection:
+        # In cloud / Docker (Render 512MB limit), default to lightweight 'buffalo_s' (<100MB RAM).
+        # In local development, default to 'buffalo_l' so all previously indexed local events work seamlessly.
+        if os.getenv("FACE_MODEL"):
+            model_name = os.getenv("FACE_MODEL")
+        elif os.getenv("RENDER") or os.getenv("DOCKER_CONTAINER") or os.path.exists("/.dockerenv"):
+            model_name = "buffalo_s"
+        else:
+            model_name = "buffalo_l"
 
-        # Delete unused onnx models to prevent InsightFace from loading 143MB landmark models into RAM
-        model_dir = os.path.expanduser(f"~/.insightface/models/{model_name}")
-        for unused in ['1k3d68.onnx', '2d106det.onnx', 'genderage.onnx']:
-            unused_path = os.path.join(model_dir, unused)
-            if os.path.exists(unused_path):
-                try:
-                    os.remove(unused_path)
-                except Exception:
-                    pass
+        # Delete unused onnx models for buffalo_s to prevent InsightFace from loading 143MB landmark models into RAM
+        if model_name == "buffalo_s":
+            model_dir = os.path.expanduser(f"~/.insightface/models/{model_name}")
+            for unused in ['1k3d68.onnx', '2d106det.onnx', 'genderage.onnx']:
+                unused_path = os.path.join(model_dir, unused)
+                if os.path.exists(unused_path):
+                    try:
+                        os.remove(unused_path)
+                    except Exception:
+                        pass
 
         self.app = FaceAnalysis(
             name=model_name, 

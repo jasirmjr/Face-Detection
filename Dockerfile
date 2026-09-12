@@ -11,7 +11,8 @@ ENV PYTHONUNBUFFERED=1 \
     MKL_NUM_THREADS=1 \
     VECLIB_MAXIMUM_THREADS=1 \
     NUMEXPR_NUM_THREADS=1 \
-    ONNXRUNTIME_NUM_THREADS=1
+    ONNXRUNTIME_NUM_THREADS=1 \
+    FACE_MODEL=buffalo_s
 
 # Install system libraries needed by OpenCV and InsightFace
 RUN apt-get update && apt-get install -y --no-install-recommends \
