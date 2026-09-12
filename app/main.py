@@ -87,14 +87,13 @@ async def event_status(event_id: str):
     event_folder = os.path.join(STORAGE_DIR, event_id)
     valid_exts = ('.jpg', '.jpeg', '.png', '.webp', '.heic', '.heif')
     folder_files_count = len([f for f in os.listdir(event_folder) if f.lower().endswith(valid_exts)]) if os.path.exists(event_folder) else 0
-    eng = get_engine()
-    faces_count = eng.get_indexed_count(event_id) if eng else 0
+    faces_count = engine.get_indexed_count(event_id) if engine else 0
     return {
         "event_id": event_id,
         "folder_exists": os.path.exists(event_folder),
         "total_photos_in_folder": folder_files_count,
         "total_faces_indexed": faces_count,
-        "engine_ready": eng is not None,
+        "engine_ready": engine is not None,
         "watcher": watcher.get_status() if watcher else {"active": False}
     }
 

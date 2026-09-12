@@ -27,8 +27,11 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Pre-download buffalo_s model during build so container boots in <1s without download memory spike
-RUN python -c "from insightface.app import FaceAnalysis; FaceAnalysis(name='buffalo_s', allowed_modules=['detection', 'recognition'])"
+# Pre-download buffalo_s and delete unused 3D landmark (143MB) & attribute models to save >250MB RAM
+RUN python -c "from insightface.app import FaceAnalysis; FaceAnalysis(name='buffalo_s', allowed_modules=['detection', 'recognition'])" && \
+    rm -f /root/.insightface/models/buffalo_s/1k3d68.onnx \
+         /root/.insightface/models/buffalo_s/2d106det.onnx \
+         /root/.insightface/models/buffalo_s/genderage.onnx
 
 # Copy application source code
 COPY . .

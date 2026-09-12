@@ -48,6 +48,17 @@ class FaceEngine:
 
         # Model selection: Defaults to lightweight 'buffalo_s' (<100MB RAM) for cloud free tiers (e.g. Render 512MB)
         model_name = os.getenv("FACE_MODEL", "buffalo_s")
+
+        # Delete unused onnx models to prevent InsightFace from loading 143MB landmark models into RAM
+        model_dir = os.path.expanduser(f"~/.insightface/models/{model_name}")
+        for unused in ['1k3d68.onnx', '2d106det.onnx', 'genderage.onnx']:
+            unused_path = os.path.join(model_dir, unused)
+            if os.path.exists(unused_path):
+                try:
+                    os.remove(unused_path)
+                except Exception:
+                    pass
+
         self.app = FaceAnalysis(
             name=model_name, 
             allowed_modules=['detection', 'recognition'], 
