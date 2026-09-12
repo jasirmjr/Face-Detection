@@ -253,6 +253,7 @@ class FaceEngine:
         faces_found = self.index_event_image(event_id, filename, actual_path, download_url=download_url)
         # 2. Immediately shrink local file to lightweight ~60 KB preview to save 97% storage
         self.optimize_to_web_preview(actual_path)
+        gc.collect()
         return faces_found
 
     def index_event_folder(self, event_id: str, event_folder: str, force_reindex: bool = False, drive_links: dict | None = None) -> dict:

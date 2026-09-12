@@ -43,6 +43,8 @@ async def lifespan(app: FastAPI):
     # Clean startup: Start background indexing for any existing event folders so search is instant
     def _warmup_and_index():
         try:
+            import time
+            time.sleep(5)  # Allow server to bind port and pass healthchecks first
             eng = get_engine()
             if eng and os.path.exists(STORAGE_DIR):
                 valid_exts = ('.jpg', '.jpeg', '.png', '.webp', '.heic', '.heif')
