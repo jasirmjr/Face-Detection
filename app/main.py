@@ -18,13 +18,31 @@ os.makedirs(TEMP_DIR, exist_ok=True)
 engine: Optional[FaceEngine] = None
 watcher: Optional[FolderWatcher] = None
 import_progress: dict[str, dict] = {}
+_engine_lock = threading.Lock()
+
+def get_engine() -> Optional[FaceEngine]:
+    global engine, watcher
+    if engine is None:
+        with _engine_lock:
+            if engine is None:
+                try:
+                    print("[INFO] Starting FaceEngine initialization in background...")
+                    inst = FaceEngine()
+                    engine = inst
+                    if watcher is None:
+                        watcher = FolderWatcher(engine=inst, watch_dir=STORAGE_DIR)
+                        watcher.start()
+                    print("[INFO] FaceEngine and FolderWatcher are ready!")
+                except Exception as e:
+                    print(f"[ERROR] Failed to initialize FaceEngine: {e}")
+    return engine
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    global engine, watcher
-    engine = FaceEngine()
-    watcher = FolderWatcher(engine=engine, watch_dir=STORAGE_DIR)
-    watcher.start()
+    global watcher, engine
+    # Initialize engine in background thread so port binds immediately in <0.2s!
+    # Render's port detection passes immediately without timeout or startup OOM.
+    threading.Thread(target=get_engine, daemon=True).start()
     try:
         yield
     finally:
@@ -36,6 +54,10 @@ async def lifespan(app: FastAPI):
 app = FastAPI(title="Event Face Finder API", lifespan=lifespan)
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
+
+@app.get("/health")
+def health():
+    return {"status": "ok", "engine_ready": engine is not None}
 
 @app.get("/photos/{event_id}/{filename:path}")
 async def get_photo(event_id: str, filename: str):
@@ -66,26 +88,29 @@ async def event_status(event_id: str):
     event_folder = os.path.join(STORAGE_DIR, event_id)
     valid_exts = ('.jpg', '.jpeg', '.png', '.webp', '.heic', '.heif')
     folder_files_count = len([f for f in os.listdir(event_folder) if f.lower().endswith(valid_exts)]) if os.path.exists(event_folder) else 0
-    faces_count = engine.get_indexed_count(event_id) if engine else 0
+    eng = get_engine()
+    faces_count = eng.get_indexed_count(event_id) if eng else 0
     return {
         "event_id": event_id,
         "folder_exists": os.path.exists(event_folder),
         "total_photos_in_folder": folder_files_count,
         "total_faces_indexed": faces_count,
+        "engine_ready": eng is not None,
         "watcher": watcher.get_status() if watcher else {"active": False}
     }
 
 @app.post("/api/events/{event_id}/index")
 def index_event(event_id: str, force: bool = Query(False)):
-    if engine is None:
-        raise HTTPException(status_code=503, detail="Face engine is not initialized.")
+    eng = get_engine()
+    if eng is None:
+        raise HTTPException(status_code=503, detail="Face engine is warming up. Please try again in a few seconds.")
 
     event_folder = os.path.join(STORAGE_DIR, event_id)
     if not os.path.exists(event_folder):
         raise HTTPException(status_code=404, detail=f"Directory for event '{event_id}' not found.")
 
     try:
-        result = engine.index_event_folder(event_id, event_folder, force_reindex=force)
+        result = eng.index_event_folder(event_id, event_folder, force_reindex=force)
         return result
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -186,7 +211,8 @@ def run_gdrive_import_task(event_id: str, clean_url: str):
         })
 
         # 2. Download each photo one by one directly into event_folder (NO SUBFOLDERS!)
-        already_indexed = engine.get_indexed_filenames(event_id) if engine else set()
+        eng = get_engine()
+        already_indexed = eng.get_indexed_filenames(event_id) if eng else set()
         total_faces = 0
 
         for idx, item in enumerate(valid_items):
@@ -214,17 +240,17 @@ def run_gdrive_import_task(event_id: str, clean_url: str):
                     continue
 
             # Index into Qdrant & optimize to web preview
-            if engine and check_name not in already_indexed:
+            if eng and check_name not in already_indexed:
                 try:
                     dl_url = saved_links.get(fname) or saved_links.get(check_name)
-                    faces_found = engine.index_single_image(event_id, target_path, download_url=dl_url)
+                    faces_found = eng.index_single_image(event_id, target_path, download_url=dl_url)
                     total_faces += faces_found
                     already_indexed.add(check_name)
                     import_progress[event_id]["faces_indexed"] = total_faces
                 except Exception as idx_err:
                     print(f"[WARN] Failed to index {fname}: {idx_err}")
-            elif engine:
-                engine.optimize_to_web_preview(target_path)
+            elif eng:
+                eng.optimize_to_web_preview(target_path)
 
         # 3. Clean up any accidental subfolders or macOS metadata files
         for root, dirs, files in os.walk(event_folder, topdown=False):
@@ -246,8 +272,8 @@ def run_gdrive_import_task(event_id: str, clean_url: str):
                     pass
 
         # Update Qdrant download URLs for all photos
-        if engine and saved_links:
-            engine.update_event_download_urls(event_id, saved_links)
+        if eng and saved_links:
+            eng.update_event_download_urls(event_id, saved_links)
 
         import_progress[event_id].update({
             "status": "completed",
@@ -271,8 +297,9 @@ async def import_from_gdrive(
     drive_url: str = Form(...)
 ):
     """Starts background download and indexing of all photos from Google Drive."""
-    if engine is None:
-        raise HTTPException(status_code=503, detail="Face engine is not initialized.")
+    eng = get_engine()
+    if eng is None:
+        raise HTTPException(status_code=503, detail="Face engine is warming up. Please try again in a few seconds.")
 
     clean_url = drive_url.strip()
     if not clean_url:
@@ -314,15 +341,16 @@ async def search_faces(
     selfie: UploadFile = File(...),
     threshold: float = Form(0.45)
 ):
-    if engine is None:
-        raise HTTPException(status_code=503, detail="Face engine is not initialized.")
+    eng = get_engine()
+    if eng is None:
+        raise HTTPException(status_code=503, detail="Face engine is warming up. Please try again in a few seconds.")
 
     temp_path = os.path.join(TEMP_DIR, selfie.filename)
     with open(temp_path, "wb") as buffer:
         shutil.copyfileobj(selfie.file, buffer)
 
     try:
-        matches = engine.search_by_selfie(temp_path, event_id=event_id, similarity_threshold=threshold)
+        matches = eng.search_by_selfie(temp_path, event_id=event_id, similarity_threshold=threshold)
     finally:
         if os.path.exists(temp_path):
             os.remove(temp_path)

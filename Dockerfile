@@ -1,5 +1,18 @@
 FROM python:3.11-slim
 
+# Memory optimization for 512MB RAM cloud containers:
+# 1. Limit glibc malloc arenas to 2 (prevents virtual memory fragmentation bloat)
+# 2. Limit OpenMP, BLAS, and ONNX threads to 1 (prevents multi-core thread explosion)
+# 3. Enable unbuffered python logging for real-time diagnostics
+ENV PYTHONUNBUFFERED=1 \
+    MALLOC_ARENA_MAX=2 \
+    OMP_NUM_THREADS=1 \
+    OPENBLAS_NUM_THREADS=1 \
+    MKL_NUM_THREADS=1 \
+    VECLIB_MAXIMUM_THREADS=1 \
+    NUMEXPR_NUM_THREADS=1 \
+    ONNXRUNTIME_NUM_THREADS=1
+
 # Install system libraries needed by OpenCV and InsightFace
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \

@@ -9,6 +9,7 @@ try:
     pillow_heif.register_heif_opener()
 except ImportError:
     pass
+import onnxruntime as ort
 from insightface.app import FaceAnalysis
 from qdrant_client import QdrantClient
 from qdrant_client.models import (
@@ -23,9 +24,24 @@ from qdrant_client.models import (
 
 class FaceEngine:
     def __init__(self, collection_name="event_faces"):
-        # Model selection: Defaults to lightweight 'buffalo_s' (<150MB RAM) for cloud free tiers (e.g. Render 512MB)
+        # Limit OpenCV threads to prevent thread pool memory explosion on cloud servers
+        cv2.setNumThreads(1)
+
+        # Configure ONNX Runtime to use minimal memory (<100MB) without pre-allocating arenas
+        sess_options = ort.SessionOptions()
+        sess_options.intra_op_num_threads = 1
+        sess_options.inter_op_num_threads = 1
+        sess_options.execution_mode = ort.ExecutionMode.ORT_SEQUENTIAL
+        sess_options.enable_cpu_mem_arena = False
+
+        # Model selection: Defaults to lightweight 'buffalo_s' (<100MB RAM) for cloud free tiers (e.g. Render 512MB)
         model_name = os.getenv("FACE_MODEL", "buffalo_s")
-        self.app = FaceAnalysis(name=model_name, allowed_modules=['detection', 'recognition'], providers=['CPUExecutionProvider'])
+        self.app = FaceAnalysis(
+            name=model_name, 
+            allowed_modules=['detection', 'recognition'], 
+            providers=['CPUExecutionProvider'],
+            session_options=sess_options
+        )
         self.app.prepare(ctx_id=0, det_size=(640, 640))
         
         # PERSISTENT STORAGE: Uses cloud Qdrant if credentials provided, else local folder
