@@ -40,9 +40,8 @@ def get_engine() -> Optional[FaceEngine]:
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     global watcher, engine
-    # Initialize engine in background thread so port binds immediately in <0.2s!
-    # Render's port detection passes immediately without timeout or startup OOM.
-    threading.Thread(target=get_engine, daemon=True).start()
+    # Clean lazy loading: No heavy AI models load during startup.
+    # The web server boots in < 0.2s with ~35MB RAM, ensuring Render's proxy never returns 502.
     try:
         yield
     finally:

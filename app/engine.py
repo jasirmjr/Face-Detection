@@ -9,7 +9,9 @@ try:
     pillow_heif.register_heif_opener()
 except ImportError:
     pass
+import gc
 import onnxruntime as ort
+import insightface.model_zoo.model_zoo as mz
 from insightface.app import FaceAnalysis
 from qdrant_client import QdrantClient
 from qdrant_client.models import (
@@ -22,27 +24,37 @@ from qdrant_client.models import (
     PayloadSchemaType
 )
 
+# CRITICAL FIX FOR 512MB RAM CLOUD CONTAINERS (Render, etc.):
+# InsightFace internally drops session_options when instantiating models.
+# We patch PickableInferenceSession to strictly enforce 1 thread and disable memory arenas.
+_orig_session_init = mz.PickableInferenceSession.__init__
+
+def _low_mem_session_init(self, model_path, **kwargs):
+    sess_opt = ort.SessionOptions()
+    sess_opt.intra_op_num_threads = 1
+    sess_opt.inter_op_num_threads = 1
+    sess_opt.execution_mode = ort.ExecutionMode.ORT_SEQUENTIAL
+    sess_opt.enable_cpu_mem_arena = False
+    kwargs['sess_options'] = sess_opt
+    kwargs['providers'] = ['CPUExecutionProvider']
+    _orig_session_init(self, model_path, **kwargs)
+
+mz.PickableInferenceSession.__init__ = _low_mem_session_init
+
 class FaceEngine:
     def __init__(self, collection_name="event_faces"):
         # Limit OpenCV threads to prevent thread pool memory explosion on cloud servers
         cv2.setNumThreads(1)
-
-        # Configure ONNX Runtime to use minimal memory (<100MB) without pre-allocating arenas
-        sess_options = ort.SessionOptions()
-        sess_options.intra_op_num_threads = 1
-        sess_options.inter_op_num_threads = 1
-        sess_options.execution_mode = ort.ExecutionMode.ORT_SEQUENTIAL
-        sess_options.enable_cpu_mem_arena = False
 
         # Model selection: Defaults to lightweight 'buffalo_s' (<100MB RAM) for cloud free tiers (e.g. Render 512MB)
         model_name = os.getenv("FACE_MODEL", "buffalo_s")
         self.app = FaceAnalysis(
             name=model_name, 
             allowed_modules=['detection', 'recognition'], 
-            providers=['CPUExecutionProvider'],
-            session_options=sess_options
+            providers=['CPUExecutionProvider']
         )
         self.app.prepare(ctx_id=0, det_size=(640, 640))
+        gc.collect()
         
         # PERSISTENT STORAGE: Uses cloud Qdrant if credentials provided, else local folder
         qdrant_url = os.getenv("QDRANT_URL")
