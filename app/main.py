@@ -116,21 +116,30 @@ def index_event(event_id: str, force: bool = Query(False)):
 @app.post("/api/events/{event_id}/upload")
 async def upload_photos(event_id: str, files: list[UploadFile] = File(...)):
     """Allows camera crew to upload photos directly from a phone or laptop browser."""
+    eng = get_engine()
     event_folder = os.path.join(STORAGE_DIR, event_id)
     os.makedirs(event_folder, exist_ok=True)
     saved_files = []
+    indexed_faces = 0
 
     for file in files:
         save_path = os.path.join(event_folder, file.filename)
         with open(save_path, "wb") as buffer:
             shutil.copyfileobj(file.file, buffer)
         saved_files.append(file.filename)
+        if eng:
+            try:
+                faces = eng.index_single_image(event_id, save_path)
+                indexed_faces += faces
+            except Exception as err:
+                print(f"[ERROR] Failed to index uploaded photo {file.filename}: {err}")
 
     return {
         "status": "success",
         "event_id": event_id,
         "uploaded_count": len(saved_files),
-        "message": "Photos received. Background watcher is indexing them automatically."
+        "faces_indexed": indexed_faces,
+        "message": f"Uploaded {len(saved_files)} photo(s) and indexed {indexed_faces} face(s) successfully!"
     }
 
 def run_gdrive_import_task(event_id: str, clean_url: str):
