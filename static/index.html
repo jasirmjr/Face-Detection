@@ -200,10 +200,10 @@
       indexBtn.disabled = true;
 
       try {
-        const res = await fetch(`/api/events/${eventId}/index`, { method: "POST" });
+        const res = await fetch(`/api/events/${eventId}/index?force=true`, { method: "POST" });
         const data = await res.json();
         if (res.ok) {
-          alert(`Successfully indexed '${eventId}'!\nProcessed: ${data.images_processed} images\nFaces Indexed: ${data.faces_indexed}`);
+          alert(`Successfully re-indexed '${eventId}'!\nProcessed: ${data.images_processed || data.images_in_folder || 0} images\nFaces Indexed: ${data.faces_indexed || 0}`);
         } else {
           alert(`Indexing failed: ${data.detail || "Unknown error"}`);
         }

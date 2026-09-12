@@ -271,7 +271,6 @@ class FaceEngine:
                 except Exception as e:
                     print(f"[WARN] Failed to read gdrive_links.json: {e}")
                     drive_links = {}
-                drive_links = {}
 
         # Sync download URLs for any existing photos in this event
         if drive_links:
