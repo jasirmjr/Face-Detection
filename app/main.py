@@ -40,8 +40,26 @@ def get_engine() -> Optional[FaceEngine]:
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     global watcher, engine
-    # Clean lazy loading: No heavy AI models load during startup.
-    # The web server boots in < 0.2s with ~35MB RAM, ensuring Render's proxy never returns 502.
+    # Clean startup: Start background indexing for any existing event folders so search is instant
+    def _warmup_and_index():
+        try:
+            eng = get_engine()
+            if eng and os.path.exists(STORAGE_DIR):
+                valid_exts = ('.jpg', '.jpeg', '.png', '.webp', '.heic', '.heif')
+                for item in sorted(os.listdir(STORAGE_DIR)):
+                    folder = os.path.join(STORAGE_DIR, item)
+                    if os.path.isdir(folder) and not item.startswith('.'):
+                        if eng.get_indexed_count(item) == 0:
+                            photo_count = sum(1 for _, _, files in os.walk(folder) for f in files if f.lower().endswith(valid_exts))
+                            if photo_count > 0:
+                                print(f"[WARMUP] Pre-indexing {photo_count} photos for event '{item}' in background...")
+                                eng.index_event_folder(item, folder)
+                                print(f"[WARMUP] Pre-indexing finished for '{item}'!")
+        except Exception as e:
+            print(f"[WARMUP] Background indexing exception: {e}")
+
+    threading.Thread(target=_warmup_and_index, daemon=True).start()
+
     try:
         yield
     finally:
@@ -403,7 +421,7 @@ async def get_import_progress(event_id: str):
     })
 
 @app.post("/api/events/{event_id}/search")
-async def search_faces(
+def search_faces(
     event_id: str, 
     selfie: UploadFile = File(...),
     threshold: float = Form(0.45)

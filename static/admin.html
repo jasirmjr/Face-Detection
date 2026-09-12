@@ -224,6 +224,37 @@
             <span id="deviceUploadBtnText">Select Photos First</span>
           </button>
 
+          <!-- Real-Time Upload & Indexing Progress Widget -->
+          <div id="uploadProgressContainer" class="hidden mt-4 bg-slate-900/90 rounded-xl p-4 border border-slate-700 space-y-3">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <svg id="uploadSpinner" class="animate-spin h-4 w-4 text-indigo-400" viewBox="0 0 24 24" fill="none">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                </svg>
+                <span id="uploadHeading" class="text-xs font-semibold text-white">Uploading & Indexing Photos...</span>
+              </div>
+              <span id="uploadPercentBadge" class="mono text-xs font-bold px-2 py-0.5 rounded bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">0%</span>
+            </div>
+
+            <!-- Track -->
+            <div class="w-full bg-slate-800 rounded-full h-2.5 overflow-hidden">
+              <div id="uploadProgressBar" class="h-2.5 rounded-full bg-gradient-to-r from-indigo-500 to-emerald-500 transition-all duration-300 ease-out" style="width: 0%"></div>
+            </div>
+
+            <!-- Stats Subtext -->
+            <div class="flex items-center justify-between text-[11px] text-slate-400">
+              <span id="uploadProgressMsg" class="mono truncate max-w-[200px] text-slate-300">Preparing upload...</span>
+              <span id="uploadProgressCount" class="mono text-slate-300 font-semibold">0 / 0</span>
+            </div>
+
+            <!-- Live Faces Indexed Subtext -->
+            <div class="flex items-center justify-between text-[11px] pt-1.5 border-t border-slate-800 text-slate-400">
+              <span>Faces detected in batch:</span>
+              <span id="uploadFacesCount" class="mono font-bold text-emerald-400">0 faces</span>
+            </div>
+          </div>
+
           <div id="deviceUploadResult" class="hidden mt-3 text-xs p-3 rounded-xl border"></div>
         </div>
 
@@ -635,48 +666,97 @@
         return;
       }
       const input = document.getElementById("devicePhotosInput");
-      if (!input.files || input.files.length === 0) return;
+      const files = Array.from(input.files || []);
+      if (files.length === 0) return;
 
+      const totalFiles = files.length;
       const btn = document.getElementById("deviceUploadBtn");
       const btnText = document.getElementById("deviceUploadBtnText");
       const resultBox = document.getElementById("deviceUploadResult");
 
+      const container = document.getElementById("uploadProgressContainer");
+      const bar = document.getElementById("uploadProgressBar");
+      const badge = document.getElementById("uploadPercentBadge");
+      const heading = document.getElementById("uploadHeading");
+      const spinner = document.getElementById("uploadSpinner");
+      const msg = document.getElementById("uploadProgressMsg");
+      const count = document.getElementById("uploadProgressCount");
+      const facesCount = document.getElementById("uploadFacesCount");
+
       btn.disabled = true;
-      btnText.innerText = `Uploading & Indexing ${input.files.length} Photo(s)...`;
       resultBox.classList.add("hidden");
+      container.classList.remove("hidden");
+      spinner.classList.remove("hidden");
+      heading.innerText = "Uploading & Indexing Photos...";
+      bar.className = "h-2.5 rounded-full bg-gradient-to-r from-indigo-500 to-emerald-500 transition-all duration-300 ease-out";
+      badge.className = "mono text-xs font-bold px-2 py-0.5 rounded bg-indigo-500/10 text-indigo-400 border border-indigo-500/20";
+      bar.style.width = "0%";
+      badge.innerText = "0%";
+      facesCount.innerText = "0 faces";
 
-      const formData = new FormData();
-      for (const f of input.files) {
-        formData.append("files", f);
-      }
+      let uploadedTotal = 0;
+      let totalFacesIndexed = 0;
+      let errors = [];
 
-      try {
-        const res = await fetch(`/api/events/${activeEventId}/upload`, {
-          method: "POST",
-          body: formData
-        });
-        const data = await res.json();
-        if (res.ok) {
-          resultBox.className = "mt-3 text-xs p-3 rounded-xl border bg-emerald-500/10 border-emerald-500/20 text-emerald-400";
-          resultBox.innerText = `✓ ${data.message || `Uploaded ${data.uploaded_count} photos and indexed ${data.faces_indexed} faces.`}`;
-          resultBox.classList.remove("hidden");
-          input.value = "";
-          handleDeviceFilesSelected();
-          checkActiveEventStatus();
-        } else {
-          resultBox.className = "mt-3 text-xs p-3 rounded-xl border bg-rose-500/10 border-rose-500/20 text-rose-400";
-          resultBox.innerText = `Error: ${data.detail || "Upload failed."}`;
-          resultBox.classList.remove("hidden");
-          btn.disabled = false;
-          btnText.innerText = "Try Upload Again";
+      for (let i = 0; i < totalFiles; i++) {
+        const file = files[i];
+        const currentNum = i + 1;
+        const currentPct = Math.round((i / totalFiles) * 100);
+
+        bar.style.width = `${currentPct}%`;
+        badge.innerText = `${currentPct}%`;
+        msg.innerText = `Uploading photo ${currentNum} of ${totalFiles}: ${file.name}`;
+        count.innerText = `${currentNum} / ${totalFiles}`;
+        btnText.innerText = `Processing photo ${currentNum} of ${totalFiles}...`;
+
+        const formData = new FormData();
+        formData.append("files", file);
+
+        try {
+          const res = await fetch(`/api/events/${encodeURIComponent(activeEventId)}/upload`, {
+            method: "POST",
+            body: formData
+          });
+          const data = await res.json();
+          if (res.ok) {
+            uploadedTotal += (data.uploaded_count || 1);
+            totalFacesIndexed += (data.faces_indexed || 0);
+            facesCount.innerText = `${totalFacesIndexed} faces`;
+          } else {
+            errors.push(`${file.name}: ${data.detail || "Upload failed"}`);
+          }
+        } catch (err) {
+          errors.push(`${file.name}: Network or timeout error`);
         }
-      } catch (err) {
-        resultBox.className = "mt-3 text-xs p-3 rounded-xl border bg-rose-500/10 border-rose-500/20 text-rose-400";
-        resultBox.innerText = "Network error during upload.";
-        resultBox.classList.remove("hidden");
-        btn.disabled = false;
-        btnText.innerText = "Try Upload Again";
+
+        const stepPct = Math.round(((i + 1) / totalFiles) * 100);
+        bar.style.width = `${stepPct}%`;
+        badge.innerText = `${stepPct}%`;
       }
+
+      // Finish & Success display
+      spinner.classList.add("hidden");
+      bar.style.width = "100%";
+      badge.innerText = "100%";
+      badge.className = "mono text-xs font-bold px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20";
+      heading.innerText = "Upload & Indexing Complete!";
+      msg.innerText = `Uploaded all ${uploadedTotal} photo(s)`;
+      count.innerText = `${uploadedTotal} / ${totalFiles}`;
+      facesCount.innerText = `${totalFacesIndexed} faces`;
+
+      resultBox.className = "mt-3 text-xs p-3 rounded-xl border bg-emerald-500/10 border-emerald-500/20 text-emerald-400";
+      resultBox.innerHTML = `
+        <div class="font-bold flex items-center gap-1.5">
+          <svg class="w-4 h-4 text-emerald-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+          <span>Successfully uploaded ${uploadedTotal} photo(s) & indexed ${totalFacesIndexed} face(s)!</span>
+        </div>
+        ${errors.length > 0 ? `<div class="text-rose-400 mt-1 text-[11px]">${errors.length} photo(s) had errors.</div>` : ''}
+      `;
+      resultBox.classList.remove("hidden");
+
+      input.value = "";
+      handleDeviceFilesSelected();
+      checkActiveEventStatus();
     }
 
     // Force Re-index Event
