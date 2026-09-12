@@ -23,7 +23,9 @@ from qdrant_client.models import (
 
 class FaceEngine:
     def __init__(self, collection_name="event_faces"):
-        self.app = FaceAnalysis(name="buffalo_l", allowed_modules=['detection', 'recognition'], providers=['CPUExecutionProvider'])
+        # Model selection: Defaults to lightweight 'buffalo_s' (<150MB RAM) for cloud free tiers (e.g. Render 512MB)
+        model_name = os.getenv("FACE_MODEL", "buffalo_s")
+        self.app = FaceAnalysis(name=model_name, allowed_modules=['detection', 'recognition'], providers=['CPUExecutionProvider'])
         self.app.prepare(ctx_id=0, det_size=(640, 640))
         
         # PERSISTENT STORAGE: Uses cloud Qdrant if credentials provided, else local folder
