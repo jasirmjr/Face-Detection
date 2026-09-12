@@ -278,19 +278,23 @@
 
     <!-- Available Events List Table -->
     <div class="bg-slate-800/60 border border-slate-700/70 rounded-2xl p-6 shadow-xl">
-      <div class="flex items-center justify-between mb-4">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
         <div>
           <h2 class="text-base font-bold text-white">All Events Overview</h2>
-          <p class="text-xs text-slate-400">All photo galleries currently stored on this server</p>
+          <p class="text-xs text-slate-400">Manage photo galleries: create new, activate/deactivate, or delete events</p>
         </div>
+        <button onclick="showCreateEventModal()" class="px-3.5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-semibold transition flex items-center gap-1.5 self-start sm:self-auto shadow-sm shadow-indigo-600/30">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
+          <span>+ Add New Event</span>
+        </button>
       </div>
 
       <div class="overflow-x-auto">
         <table class="w-full text-left text-xs text-slate-300">
           <thead class="text-[11px] uppercase bg-slate-900/60 text-slate-400 border-b border-slate-700">
             <tr>
-              <th scope="col" class="px-4 py-3 font-semibold">Event Name</th>
-              <th scope="col" class="px-4 py-3 font-semibold">Folder ID</th>
+              <th scope="col" class="px-4 py-3 font-semibold">Event / Folder Name</th>
+              <th scope="col" class="px-4 py-3 font-semibold">Status</th>
               <th scope="col" class="px-4 py-3 font-semibold">Photos</th>
               <th scope="col" class="px-4 py-3 font-semibold">Faces Indexed</th>
               <th scope="col" class="px-4 py-3 font-semibold text-right">Actions</th>
@@ -436,26 +440,81 @@
     function renderEventsTable(events) {
       const tbody = document.getElementById("eventsTableBody");
       if (!events || events.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="5" class="px-4 py-6 text-center text-slate-500">No events yet. Click "+ New Event" to create one.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="5" class="px-4 py-6 text-center text-slate-500">No events yet. Click "+ Add New Event" to create one.</td></tr>`;
         return;
       }
 
-      tbody.innerHTML = events.map(ev => `
-        <tr class="hover:bg-slate-800/40 transition">
-          <td class="px-4 py-3 font-semibold text-white">${ev.name}</td>
-          <td class="px-4 py-3 mono text-slate-400">${ev.id}</td>
+      tbody.innerHTML = events.map(ev => {
+        const isActive = ev.active !== false;
+        return `
+        <tr class="hover:bg-slate-800/40 transition ${isActive ? '' : 'opacity-65 bg-slate-900/40'}">
+          <td class="px-4 py-3">
+            <div class="font-bold text-white">${ev.name}</div>
+            <div class="mono text-[10px] text-slate-400">/storage/events/${ev.id}</div>
+          </td>
+          <td class="px-4 py-3">
+            ${isActive 
+              ? `<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                   <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Active
+                 </span>`
+              : `<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                   <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span> Inactive
+                 </span>`
+            }
+          </td>
           <td class="px-4 py-3 text-slate-300 mono">${ev.total_photos}</td>
           <td class="px-4 py-3 text-emerald-400 font-semibold mono">${ev.faces_indexed}</td>
-          <td class="px-4 py-3 text-right space-x-2">
-            <button onclick="switchEvent('${ev.id}')" class="px-2.5 py-1 bg-slate-700 hover:bg-slate-600 text-white rounded text-[11px] font-medium transition">
-              Select
-            </button>
-            <a href="/?event=${encodeURIComponent(ev.id)}" target="_blank" class="px-2.5 py-1 bg-indigo-600/80 hover:bg-indigo-600 text-white rounded text-[11px] font-medium transition">
-              Guest View ↗
-            </a>
+          <td class="px-4 py-3 text-right">
+            <div class="inline-flex items-center gap-1.5 flex-wrap justify-end">
+              <button onclick="switchEvent('${ev.id}')" class="px-2.5 py-1 bg-slate-700 hover:bg-slate-600 text-white rounded text-[11px] font-medium transition" title="Select this event">
+                Select
+              </button>
+              <a href="/?event=${encodeURIComponent(ev.id)}" target="_blank" class="px-2.5 py-1 bg-indigo-600/80 hover:bg-indigo-600 text-white rounded text-[11px] font-medium transition" title="Preview guest photo search page">
+                Guest View ↗
+              </a>
+              <button onclick="toggleEventStatus('${ev.id}')" class="px-2.5 py-1 ${isActive ? 'bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/30' : 'bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/30'} rounded text-[11px] font-medium transition" title="${isActive ? 'Hide from guest dropdown' : 'Show in guest dropdown'}">
+                ${isActive ? '⏸ Deactivate' : '▶ Activate'}
+              </button>
+              <button onclick="confirmDeleteEvent('${ev.id}')" class="px-2.5 py-1 bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/30 rounded text-[11px] font-medium transition" title="Delete folder and face vectors">
+                🗑 Delete
+              </button>
+            </div>
           </td>
         </tr>
-      `).join("");
+      `;
+      }).join("");
+    }
+
+    async function toggleEventStatus(id) {
+      try {
+        const res = await fetch(`/api/events/${encodeURIComponent(id)}/toggle-status`, { method: "POST" });
+        const data = await res.json();
+        if (res.ok) {
+          await loadEvents(activeEventId);
+        } else {
+          alert(`Failed to update status: ${data.detail || "Error"}`);
+        }
+      } catch (err) {
+        alert("Network error updating event status.");
+      }
+    }
+
+    async function confirmDeleteEvent(id) {
+      if (!confirm(`⚠️ DANGER: Permanently delete event '${id}'?\n\nThis will delete all photos on disk and erase all indexed face vectors from the database. This action CANNOT be undone.`)) {
+        return;
+      }
+      try {
+        const res = await fetch(`/api/events/${encodeURIComponent(id)}`, { method: "DELETE" });
+        const data = await res.json();
+        if (res.ok) {
+          alert(`Event '${id}' and its photos have been deleted.`);
+          await loadEvents();
+        } else {
+          alert(`Failed to delete event: ${data.detail || "Error"}`);
+        }
+      } catch (err) {
+        alert("Network error deleting event.");
+      }
     }
 
     function switchEvent(id) {

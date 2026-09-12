@@ -225,7 +225,7 @@
 
     async function loadEvents(preferredEvent = "") {
       try {
-        const res = await fetch("/api/events");
+        const res = await fetch("/api/events?active_only=true");
         const data = await res.json();
         const events = data.events || [];
         const select = document.getElementById("eventIdSelect");

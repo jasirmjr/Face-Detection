@@ -107,8 +107,8 @@ def admin_page():
     return FileResponse("static/admin.html")
 
 @app.get("/api/events")
-async def list_events():
-    """Lists all available events with photo and indexed face counts."""
+async def list_events(active_only: bool = Query(False)):
+    """Lists all available events with photo and indexed face counts and active status."""
     eng = get_engine()
     events = []
     if os.path.exists(STORAGE_DIR):
@@ -125,6 +125,20 @@ async def list_events():
                     except Exception:
                         pass
 
+                # Check active status from meta.json
+                meta_file = os.path.join(folder_path, "meta.json")
+                is_active = True
+                if os.path.exists(meta_file):
+                    try:
+                        with open(meta_file, "r", encoding="utf-8") as mf:
+                            meta = json.load(mf)
+                            is_active = meta.get("active", True)
+                    except Exception:
+                        pass
+
+                if active_only and not is_active:
+                    continue
+
                 photo_count = sum(
                     1 for root, _, files in os.walk(folder_path) 
                     for f in files 
@@ -135,7 +149,8 @@ async def list_events():
                     "id": item,
                     "name": item,  # EXACT folder name
                     "total_photos": photo_count,
-                    "faces_indexed": faces_count
+                    "faces_indexed": faces_count,
+                    "active": is_active
                 })
     return {"events": events}
 
@@ -149,10 +164,76 @@ async def create_event(event_id: str = Form(...)):
     
     event_folder = os.path.join(STORAGE_DIR, clean_id)
     os.makedirs(event_folder, exist_ok=True)
+    gitkeep_path = os.path.join(event_folder, ".gitkeep")
+    if not os.path.exists(gitkeep_path):
+        with open(gitkeep_path, "w") as f:
+            pass
+    meta_path = os.path.join(event_folder, "meta.json")
+    if not os.path.exists(meta_path):
+        with open(meta_path, "w", encoding="utf-8") as f:
+            json.dump({"active": True}, f, indent=2)
     return {
         "status": "success",
         "event_id": clean_id,
         "message": f"Event '{clean_id}' created successfully."
+    }
+
+@app.post("/api/events/{event_id}/toggle-status")
+async def toggle_event_status(event_id: str):
+    """Toggles active/inactive status for an event."""
+    event_folder = os.path.join(STORAGE_DIR, event_id)
+    if not os.path.exists(event_folder):
+        raise HTTPException(status_code=404, detail=f"Event '{event_id}' not found.")
+    
+    meta_path = os.path.join(event_folder, "meta.json")
+    meta = {}
+    if os.path.exists(meta_path):
+        try:
+            with open(meta_path, "r", encoding="utf-8") as f:
+                meta = json.load(f)
+        except Exception:
+            pass
+    
+    current_status = meta.get("active", True)
+    new_status = not current_status
+    meta["active"] = new_status
+
+    try:
+        with open(meta_path, "w", encoding="utf-8") as f:
+            json.dump(meta, f, indent=2)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to update event metadata: {e}")
+
+    return {
+        "status": "success",
+        "event_id": event_id,
+        "active": new_status,
+        "message": f"Event '{event_id}' is now {'Active' if new_status else 'Inactive'}."
+    }
+
+@app.delete("/api/events/{event_id}")
+async def delete_event(event_id: str):
+    """Permanently deletes an event, its folder on disk, and all vectors in Qdrant."""
+    event_folder = os.path.join(STORAGE_DIR, event_id)
+    if not os.path.exists(event_folder):
+        raise HTTPException(status_code=404, detail=f"Event '{event_id}' not found.")
+    
+    eng = get_engine()
+    if eng:
+        try:
+            eng.clear_event(event_id)
+        except Exception as e:
+            print(f"[WARN] Failed to clear vectors for event '{event_id}': {e}")
+    
+    try:
+        shutil.rmtree(event_folder)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to delete event folder: {e}")
+
+    return {
+        "status": "success",
+        "event_id": event_id,
+        "message": f"Event '{event_id}' and all its photos were permanently deleted."
     }
 
 @app.get("/api/events/{event_id}/status")
