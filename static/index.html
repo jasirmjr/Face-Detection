@@ -56,9 +56,15 @@
       
       <!-- Event Picker -->
       <div>
-        <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">
-          Select Event
-        </label>
+        <div class="flex items-center justify-between mb-1.5">
+          <label class="block text-xs font-bold uppercase tracking-wider text-slate-600">
+            Select Event / Folder
+          </label>
+          <button type="button" onclick="loadEvents(activeEventId)" class="text-xs text-indigo-600 hover:text-indigo-800 font-semibold flex items-center gap-1 transition cursor-pointer" title="Refresh folder list">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
+            <span>Refresh</span>
+          </button>
+        </div>
         <div class="relative">
           <select id="eventIdSelect" onchange="syncEventIdInput(this.value)" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition appearance-none cursor-pointer">
             <option value="">Loading events...</option>
@@ -67,6 +73,15 @@
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
           </div>
         </div>
+
+        <!-- Custom Folder Name Input (shown if user chooses to enter a custom folder) -->
+        <div id="customFolderInputBox" class="hidden mt-2">
+          <div class="relative">
+            <input type="text" id="customFolderInput" oninput="onCustomFolderInput(this.value)" placeholder="Enter local folder name (e.g. wedding_2026)" class="w-full bg-white border border-indigo-200 rounded-xl px-3.5 py-2 text-xs font-mono text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+            <span class="absolute inset-y-0 right-0 flex items-center pr-3 text-[10px] text-indigo-500 font-semibold">Custom</span>
+          </div>
+        </div>
+
         <input type="hidden" id="eventId" value="" />
       </div>
 
@@ -217,40 +232,74 @@
         select.innerHTML = "";
 
         if (events.length === 0) {
-          select.innerHTML = `<option value="default">Default Event</option>`;
-          syncEventIdInput("default");
+          select.innerHTML = `
+            <option value="__custom__">✏️ Enter custom folder name...</option>
+          `;
+          showCustomFolderInput(true);
           return;
         }
 
         events.forEach(ev => {
           const opt = document.createElement("option");
           opt.value = ev.id;
-          opt.innerText = `${ev.name} (${ev.total_photos} photos)`;
+          opt.innerText = ev.total_photos > 0 ? `${ev.id} (${ev.total_photos} photos)` : ev.id;
           select.appendChild(opt);
         });
 
+        // Add custom folder option
+        const customOpt = document.createElement("option");
+        customOpt.value = "__custom__";
+        customOpt.innerText = "✏️ Enter custom folder name...";
+        select.appendChild(customOpt);
+
         if (preferredEvent && events.some(e => e.id === preferredEvent)) {
           select.value = preferredEvent;
+          showCustomFolderInput(false);
+          syncEventIdInput(preferredEvent);
         } else if (preferredEvent) {
-          // Add preferred event even if not in list yet
           const opt = document.createElement("option");
           opt.value = preferredEvent;
           opt.innerText = preferredEvent;
-          select.appendChild(opt);
+          select.insertBefore(opt, select.firstChild);
           select.value = preferredEvent;
+          showCustomFolderInput(false);
+          syncEventIdInput(preferredEvent);
         } else {
           select.value = events[0].id;
+          showCustomFolderInput(false);
+          syncEventIdInput(events[0].id);
         }
-
-        syncEventIdInput(select.value);
       } catch (err) {
         console.error("Error loading events:", err);
       }
     }
 
     function syncEventIdInput(val) {
-      activeEventId = val;
-      document.getElementById("eventId").value = val;
+      if (val === "__custom__") {
+        showCustomFolderInput(true);
+        const customVal = document.getElementById("customFolderInput").value.trim();
+        activeEventId = customVal;
+        document.getElementById("eventId").value = customVal;
+      } else {
+        showCustomFolderInput(false);
+        activeEventId = val;
+        document.getElementById("eventId").value = val;
+      }
+    }
+
+    function showCustomFolderInput(show) {
+      const box = document.getElementById("customFolderInputBox");
+      if (show) {
+        box.classList.remove("hidden");
+        document.getElementById("customFolderInput").focus();
+      } else {
+        box.classList.add("hidden");
+      }
+    }
+
+    function onCustomFolderInput(val) {
+      activeEventId = val.trim();
+      document.getElementById("eventId").value = val.trim();
     }
 
     function handleSelfieSelected(input) {

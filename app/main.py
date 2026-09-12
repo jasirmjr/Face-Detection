@@ -96,6 +96,15 @@ async def list_events():
         for item in sorted(os.listdir(STORAGE_DIR)):
             folder_path = os.path.join(STORAGE_DIR, item)
             if os.path.isdir(folder_path) and not item.startswith('.'):
+                # Ensure .gitkeep exists so git tracks this folder
+                gitkeep_file = os.path.join(folder_path, ".gitkeep")
+                if not os.path.exists(gitkeep_file):
+                    try:
+                        with open(gitkeep_file, "w") as f:
+                            pass
+                    except Exception:
+                        pass
+
                 photo_count = sum(
                     1 for root, _, files in os.walk(folder_path) 
                     for f in files 
@@ -104,7 +113,7 @@ async def list_events():
                 faces_count = eng.get_indexed_count(item) if eng else 0
                 events.append({
                     "id": item,
-                    "name": item.replace("-", " ").replace("_", " ").title(),
+                    "name": item,  # EXACT folder name
                     "total_photos": photo_count,
                     "faces_indexed": faces_count
                 })
@@ -402,6 +411,16 @@ async def search_faces(
     eng = get_engine()
     if eng is None:
         raise HTTPException(status_code=503, detail="Face engine is warming up. Please try again in a few seconds.")
+
+    # Auto-indexing: If event folder has photos on disk but 0 indexed vectors in Qdrant, index them now!
+    if eng.get_indexed_count(event_id) == 0:
+        event_folder = os.path.join(STORAGE_DIR, event_id)
+        if os.path.exists(event_folder):
+            try:
+                print(f"[INFO] Auto-indexing photos on-the-fly for event '{event_id}'...")
+                eng.index_event_folder(event_id, event_folder)
+            except Exception as idx_err:
+                print(f"[WARN] Auto-indexing failed: {idx_err}")
 
     temp_path = os.path.join(TEMP_DIR, selfie.filename)
     with open(temp_path, "wb") as buffer:

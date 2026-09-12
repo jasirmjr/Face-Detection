@@ -9,9 +9,9 @@ qdrant_db/
 storage/temp_selfies/*
 !storage/temp_selfies/.gitkeep
 
-# Ignore client images inside event folders, but keep directory structure
-storage/events/*
-!storage/events/.gitkeep
+# Keep event folders and photos tracked in git so hosted app has all events
+!storage/events/**
+
 
 # OS / Editor files
 .vscode/
