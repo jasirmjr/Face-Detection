@@ -3,211 +3,274 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Find Your Event Photos — Lyf Ads</title>
+  <title>LYF ADS — Find Your Event Moments</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
   <style>
-    body { font-family: 'Plus Jakarta Sans', sans-serif; }
-    .mono { font-family: 'JetBrains Mono', monospace; }
+    body {
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: #ffffff;
+      color: #000000;
+    }
+    .mono {
+      font-family: 'JetBrains Mono', monospace;
+    }
+    select {
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      appearance: none;
+    }
   </style>
 </head>
-<body class="bg-gradient-to-b from-slate-50 via-white to-slate-50 text-slate-800 min-h-screen flex flex-col antialiased selection:bg-indigo-500 selection:text-white">
+<body class="bg-white text-black min-h-screen flex flex-col antialiased selection:bg-[#8B1E28] selection:text-white">
 
-  <!-- Top Navbar -->
-  <header class="w-full border-b border-slate-100 bg-white/80 backdrop-blur sticky top-0 z-30">
-    <div class="max-w-5xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
-      <a href="/" class="flex items-center gap-2.5">
-        <div class="h-9 w-9 rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-600 flex items-center justify-center shadow-md shadow-indigo-500/20 text-white font-black text-base">
-          ✨
-        </div>
-        <div>
-          <span class="font-extrabold text-base tracking-tight text-slate-900">Lyf Ads</span>
-          <span class="text-[11px] text-slate-400 block -mt-1">Face Finder</span>
-        </div>
-      </a>
-
-      <!-- Discreet Admin Link -->
-      <a href="/admin" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 transition border border-transparent hover:border-indigo-100" title="Switch to Admin Dashboard">
-        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-        <span>Admin Portal</span>
-      </a>
-    </div>
-  </header>
-
-  <!-- Hero Section -->
-  <section class="max-w-3xl mx-auto px-4 pt-10 pb-6 text-center space-y-3">
-    <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-50 border border-indigo-100 text-indigo-700 text-xs font-semibold tracking-wide shadow-sm">
-      <span class="w-2 h-2 rounded-full bg-indigo-600 animate-pulse"></span>
-      <span>AI-Powered Event Photo Search</span>
-    </div>
-    <h1 class="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight leading-tight">
-      Find Your Photos in Seconds
-    </h1>
-    <p class="text-sm sm:text-base text-slate-500 max-w-lg mx-auto">
-      Upload or snap a quick selfie, and our AI will instantly find every photo you appear in across the entire event.
-    </p>
-  </section>
-
-  <!-- Main Search Card -->
-  <main class="max-w-xl mx-auto px-4 w-full flex-1 mb-16">
-    <div class="bg-white rounded-3xl p-6 sm:p-8 shadow-xl shadow-slate-200/50 border border-slate-100 space-y-6">
+  <!-- Main Hero Content -->
+  <main class="w-full flex-1 flex flex-col items-center justify-center px-4 sm:px-6 py-12 sm:py-16">
+    
+    <div class="w-full max-w-lg mx-auto flex flex-col items-center">
       
-      <!-- Event Picker -->
-      <div>
-        <div class="flex items-center justify-between mb-1.5">
-          <label class="block text-xs font-bold uppercase tracking-wider text-slate-600">
-            Select Event / Folder
-          </label>
-          <button type="button" onclick="loadEvents(activeEventId)" class="text-xs text-indigo-600 hover:text-indigo-800 font-semibold flex items-center gap-1 transition cursor-pointer" title="Refresh folder list">
-            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
-            <span>Refresh</span>
+      <!-- Brand Camera Logo & Identity (Red Element) -->
+      <div class="flex flex-col items-center justify-center mb-6">
+        <img 
+          src="/public/LYFADS_Identity__1.png" 
+          alt="LYF ADS Camera" 
+          class="h-16 sm:h-20 w-auto object-contain transition-transform duration-300 hover:scale-105" 
+        />
+        <span class="text-[11px] font-bold tracking-[0.25em] text-[#8B1E28] uppercase mt-3">
+          LYF &bull; ADS
+        </span>
+      </div>
+
+      <!-- Main Headline & Subtitle (Black Text) -->
+      <div class="text-center space-y-2.5 mb-8">
+        <h1 class="text-3xl sm:text-4xl font-extrabold text-black tracking-tight">
+          Find Your Event Moments
+        </h1>
+        <p class="text-slate-700 text-sm sm:text-base max-w-md mx-auto leading-relaxed">
+          Select an event gallery to view all official captures or immediately locate your personal photos.
+        </p>
+      </div>
+
+      <!-- Event Selector Box -->
+      <div class="w-full mb-5">
+        <div class="flex items-center justify-between text-xs font-bold text-black uppercase tracking-wider mb-2">
+          <span class="flex items-center gap-2">
+            <!-- Red Element: Calendar Icon -->
+            <svg class="w-4 h-4 text-[#8B1E28]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+            <span>SELECT EVENT</span>
+          </span>
+          <!-- Red Element: Refresh Action -->
+          <button type="button" onclick="loadEvents(activeEventId)" class="flex items-center gap-1.5 text-[#8B1E28] hover:text-[#6a151e] transition font-semibold lowercase tracking-normal cursor-pointer" title="Refresh events list">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+            <span class="capitalize">Refresh</span>
           </button>
         </div>
-        <div class="relative">
-          <select id="eventIdSelect" onchange="syncEventIdInput(this.value)" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition appearance-none cursor-pointer">
+
+        <!-- Custom Styled Dropdown Input (White background, Black text, Red Icon) -->
+        <div class="relative flex items-center bg-white border-2 border-slate-200 rounded-2xl px-4 py-3.5 hover:border-[#8B1E28] focus-within:border-[#8B1E28] focus-within:ring-2 focus-within:ring-[#8B1E28]/20 transition cursor-pointer shadow-xs">
+          <!-- Red Element: Photo Icon -->
+          <div class="text-[#8B1E28] mr-3 flex items-center pointer-events-none">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+          </div>
+          <!-- Black Text: Select Event Dropdown -->
+          <select id="eventIdSelect" onchange="syncEventIdInput(this.value)" class="w-full bg-transparent text-sm font-bold text-black focus:outline-none cursor-pointer pr-8">
             <option value="">Loading events...</option>
           </select>
-          <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3.5 text-slate-400">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+          <!-- Red Element: Caret Icon -->
+          <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-[#8B1E28]">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M19 9l-7 7-7-7" />
+            </svg>
           </div>
-        </div>
-
-        <input type="hidden" id="eventId" value="" />
-      </div>
-
-      <!-- Selfie Upload Box -->
-      <div>
-        <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">
-          Your Selfie / Reference Photo
-        </label>
-
-        <!-- Drop / Select Zone -->
-        <div id="dropZone" onclick="document.getElementById('selfieInput').click()" class="border-2 border-dashed border-slate-200 hover:border-indigo-500/80 bg-slate-50/70 hover:bg-indigo-50/20 rounded-2xl p-6 text-center transition cursor-pointer group relative overflow-hidden">
-          <input type="file" id="selfieInput" accept="image/*" capture="user" class="hidden" onchange="handleSelfieSelected(this)" />
-
-          <!-- Default Empty State -->
-          <div id="selfieEmptyState" class="space-y-2">
-            <div class="w-12 h-12 mx-auto rounded-full bg-indigo-50 group-hover:bg-indigo-100 text-indigo-600 flex items-center justify-center transition">
-              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
-              </svg>
-            </div>
-            <div>
-              <p class="text-sm font-semibold text-slate-800">Take a selfie or upload a photo</p>
-              <p class="text-xs text-slate-400 mt-0.5">Clear lighting with your face facing the camera works best</p>
-            </div>
-          </div>
-
-          <!-- Selected Preview State -->
-          <div id="selfiePreviewState" class="hidden flex flex-col items-center justify-center space-y-2">
-            <div class="relative">
-              <img id="selfiePreviewImg" src="" alt="Selfie preview" class="w-24 h-24 rounded-full object-cover shadow-md border-2 border-indigo-500" />
-              <div class="absolute bottom-0 right-0 bg-emerald-500 text-white rounded-full p-1 shadow">
-                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" /></svg>
-              </div>
-            </div>
-            <p class="text-xs font-semibold text-indigo-600 hover:text-indigo-700">Click to change photo</p>
-          </div>
+          <input type="hidden" id="eventId" value="" />
         </div>
       </div>
 
-      <!-- Advanced Settings (Collapsible Threshold) -->
-      <details class="text-xs text-slate-500 group">
-        <summary class="cursor-pointer font-medium hover:text-slate-800 flex items-center justify-between list-none">
-          <span class="flex items-center gap-1.5">
-            <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" /></svg>
-            <span>Match Sensitivity (Optional)</span>
-          </span>
-          <span id="thresholdBadge" class="mono text-[11px] font-semibold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded">0.45</span>
-        </summary>
-        <div class="pt-3 pb-1 space-y-2">
-          <input type="range" id="thresholdSlider" min="0.30" max="0.65" step="0.05" value="0.45" oninput="updateThresholdDisplay(this.value)" class="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-indigo-600" />
-          <div class="flex justify-between text-[10px] text-slate-400">
-            <span>More Photos (Lenient 0.30)</span>
-            <span>Balanced (0.45)</span>
-            <span>Exact Match (Strict 0.65)</span>
+      <!-- Action Buttons Area (Both Buttons Styled the SAME: Red Elements) -->
+      <div class="w-full space-y-4">
+        
+        <!-- Button 1: FIND MY PHOTOS (Red Element Button, Exact Same Height & Sizing) -->
+        <div>
+          <button 
+            id="findMyPhotosBtn" 
+            onclick="openSelfieModal()" 
+            class="w-full bg-[#8B1E28] hover:bg-[#72151e] active:scale-[0.99] text-white font-extrabold py-4 px-6 rounded-2xl transition-all duration-200 flex items-center justify-center gap-2.5 text-xs uppercase tracking-wider cursor-pointer shadow-md shadow-red-900/20 group"
+          >
+            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+            <span class="tracking-wider">FIND MY PHOTOS</span>
+           
+          </button>
+          
+        </div>
+
+        <!-- Button 2: BROWSE FULL ALBUM (Exact Same Red Element Button & Height) -->
+        <button 
+          type="button" 
+          onclick="browseFullAlbum()" 
+          class="w-full bg-[#8B1E28] hover:bg-[#72151e] active:scale-[0.99] text-white font-extrabold py-4 px-6 rounded-2xl transition-all duration-200 flex items-center justify-center gap-2.5 text-xs uppercase tracking-wider cursor-pointer shadow-md shadow-red-900/20 group"
+        >
+          <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+          </svg>
+          <span class="tracking-wider">BROWSE FULL ALBUM</span>
+        </button>
+
+      </div>
+
+
+
+    </div>
+
+    <!-- Full-Width Results & Album Gallery Section (White Background, Red Elements) -->
+    <section id="resultsSection" class="hidden w-full max-w-[1920px] mx-auto mt-16 space-y-6 pt-8 border-t border-slate-100 px-4 sm:px-8 lg:px-12">
+      
+      <!-- Results Bar -->
+      <div class="flex items-center justify-between">
+        <div>
+          <h2 id="resultHeading" class="text-xl font-extrabold text-black">Photos</h2>
+          <p id="resultSubheading" class="text-xs text-slate-600 font-medium"></p>
+        </div>
+        <!-- Red Element: Count Badge -->
+        <span id="resultCountBadge" class="mono text-xs font-bold px-3.5 py-1.5 rounded-full bg-[#8B1E28] text-white shadow-sm">0 Photos</span>
+      </div>
+
+      <!-- Photo Grid spanning full width (2 to 7 columns) -->
+      <div id="galleryGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-3 sm:gap-4 w-full"></div>
+
+      <!-- Empty State -->
+      <div id="emptyResults" class="hidden text-center py-14 bg-slate-50 rounded-2xl border border-slate-200 p-6 space-y-3 max-w-md mx-auto">
+        <p class="text-sm font-bold text-black">No matching photos found</p>
+        <p class="text-xs text-slate-600">Try another selfie or browse the full album.</p>
+        <button onclick="browseFullAlbum()" class="text-xs font-bold text-[#8B1E28] underline cursor-pointer">
+          Browse Full Album &rarr;
+        </button>
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- Selfie Upload Modal (White Background, Black Text, Red Elements) -->
+  <div id="selfieModal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden flex items-center justify-center p-4" onclick="closeSelfieModal(event)">
+    <div class="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl space-y-5 border border-slate-100" onclick="event.stopPropagation()">
+      
+      <div class="flex items-center justify-between">
+        <div>
+          <h3 class="text-lg font-bold text-black">Take or Upload Selfie</h3>
+          <p class="text-xs text-slate-500">For instant private facial recognition</p>
+        </div>
+        <button onclick="closeSelfieModal()" class="text-slate-400 hover:text-black p-1.5 rounded-full hover:bg-slate-100 transition cursor-pointer">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+        </button>
+      </div>
+
+      <!-- Selfie Drop & Camera Zone -->
+      <div id="dropZone" onclick="document.getElementById('selfieInput').click()" class="border-2 border-dashed border-slate-200 hover:border-[#8B1E28] bg-slate-50/70 hover:bg-slate-50 rounded-2xl p-6 text-center transition cursor-pointer group">
+        <input type="file" id="selfieInput" accept="image/*" capture="user" class="hidden" onchange="handleSelfieSelected(this)" />
+
+        <!-- Empty State -->
+        <div id="selfieEmptyState" class="flex flex-col items-center justify-center py-2">
+          <div class="w-14 h-14 rounded-full bg-white border border-slate-200 text-[#8B1E28] flex items-center justify-center group-hover:scale-105 group-hover:border-[#8B1E28] transition shadow-xs">
+            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+          </div>
+          <p class="text-xs font-bold text-black mt-3">Take Photo or Choose File</p>
+          <p class="text-[11px] text-slate-500 mt-0.5">Click or drop image here</p>
+        </div>
+
+        <!-- Selected Preview State -->
+        <div id="selfiePreviewState" class="hidden flex items-center justify-center gap-4 py-2">
+          <img id="selfiePreviewImg" src="" alt="Selfie preview" class="w-16 h-16 rounded-full object-cover border-2 border-[#8B1E28] shadow-sm" />
+          <div class="text-left">
+            <p class="text-xs font-bold text-black">Portrait Selected</p>
+            <p class="text-[11px] text-[#8B1E28] font-semibold underline">Tap to choose different photo</p>
           </div>
         </div>
-      </details>
+      </div>
 
-      <!-- Find Photos Action Button -->
-      <button id="searchBtn" onclick="findPhotos()" class="w-full bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white font-bold py-3.5 px-6 rounded-2xl transition shadow-lg shadow-indigo-500/25 flex items-center justify-center gap-2 text-sm">
-        <svg class="w-4 h-4 text-indigo-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
-        <span id="searchBtnText">Find My Photos</span>
+      <!-- Hidden default threshold -->
+      <input type="hidden" id="thresholdSlider" value="0.45" />
+
+      <!-- Run Search Button (Red Element) -->
+      <button 
+        id="searchBtn" 
+        onclick="findPhotos()" 
+        class="w-full bg-[#8B1E28] hover:bg-[#72151e] active:scale-[0.99] text-white font-extrabold py-3.5 px-5 rounded-2xl transition flex items-center justify-center gap-2 text-xs uppercase tracking-wider cursor-pointer shadow-md shadow-red-900/20"
+      >
+        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+        </svg>
+        <span id="searchBtnText">Start AI Face Search</span>
       </button>
 
-      <!-- Loading State Indicator -->
-      <div id="searchLoader" class="hidden text-center py-4 space-y-2">
-        <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-indigo-50 text-indigo-700 text-xs font-semibold">
-          <svg class="animate-spin h-4 w-4 text-indigo-600" viewBox="0 0 24 24" fill="none">
+      <!-- Loader inside modal -->
+      <div id="searchLoader" class="hidden text-center py-2">
+        <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-slate-100 text-slate-800 text-xs font-medium">
+          <svg class="animate-spin h-4 w-4 text-[#8B1E28]" viewBox="0 0 24 24" fill="none">
             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
           </svg>
-          <span>Scanning photos for your face...</span>
+          <span>Scanning face embeddings...</span>
         </div>
-        <p class="text-[11px] text-slate-400">Comparing face embeddings with high precision</p>
       </div>
 
     </div>
+  </div>
 
-    <!-- Gallery Results Section -->
-    <div id="resultsSection" class="hidden mt-12 space-y-6">
-      <div class="flex items-center justify-between pb-3 border-b border-slate-200">
-        <div>
-          <h2 id="resultHeading" class="text-xl font-bold text-slate-900">Your Photos</h2>
-          <p id="resultSubheading" class="text-xs text-slate-500 mt-0.5">Click any photo to view in high resolution</p>
-        </div>
-        <span id="resultCountBadge" class="mono text-xs font-bold px-3 py-1 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-100">0 Photos</span>
-      </div>
-
-      <!-- Photo Grid -->
-      <div id="galleryGrid" class="grid grid-cols-2 sm:grid-cols-3 gap-4 sm:gap-6"></div>
-
-      <!-- Empty State -->
-      <div id="emptyResults" class="hidden text-center py-12 bg-white rounded-3xl border border-slate-100 p-8 space-y-3">
-        <div class="w-12 h-12 mx-auto rounded-full bg-slate-100 text-slate-400 flex items-center justify-center">
-          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-        </div>
-        <h3 class="text-sm font-bold text-slate-800">No Matching Photos Found</h3>
-        <p class="text-xs text-slate-500 max-w-sm mx-auto">
-          We couldn't detect your face in the current event album. Try uploading a clearer selfie with good lighting, or adjust the Match Sensitivity slider.
-        </p>
-      </div>
-    </div>
-  </main>
-
-  <!-- Lightbox Modal for Full-Screen Preview -->
-  <div id="lightboxModal" class="fixed inset-0 z-50 bg-slate-950/95 hidden flex items-center justify-center p-4 backdrop-blur-md" onclick="closeLightbox(event)">
-    <div class="relative max-w-4xl max-h-[90vh] flex flex-col items-center" onclick="event.stopPropagation()">
-      <button onclick="closeLightbox()" class="absolute -top-10 right-0 text-slate-300 hover:text-white p-1 text-sm font-bold flex items-center gap-1">
-        <span>Close</span> &times;
+  <!-- Fullscreen Lightbox Modal -->
+  <div id="lightboxModal" class="fixed inset-0 z-50 bg-black/90 hidden flex items-center justify-center p-4 backdrop-blur-sm" onclick="closeLightbox(event)">
+    <div class="relative max-w-5xl max-h-[92vh] flex flex-col items-center" onclick="event.stopPropagation()">
+      <button onclick="closeLightbox()" class="absolute -top-9 right-0 text-white/80 hover:text-white p-1 text-sm font-semibold flex items-center gap-1 cursor-pointer">
+        <span>Close &times;</span>
       </button>
-      <img id="lightboxImg" src="" alt="Full view" class="max-w-full max-h-[78vh] object-contain rounded-xl shadow-2xl" />
-      <div class="mt-4 flex items-center gap-3">
-        <span id="lightboxMatchBadge" class="text-xs font-semibold px-3 py-1 rounded-full bg-white/10 text-white backdrop-blur">Match 98%</span>
-        <a id="lightboxDownloadBtn" href="" target="_blank" download="" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold rounded-xl shadow-lg shadow-indigo-600/30 transition flex items-center gap-1.5">
+      <img id="lightboxImg" src="" alt="Photo preview" class="max-w-full max-h-[82vh] object-contain rounded-xl shadow-2xl" />
+      <div class="mt-3 flex items-center justify-center">
+        <a id="lightboxDownloadBtn" href="" target="_blank" download="" class="px-5 py-2.5 bg-[#8B1E28] hover:bg-[#72151e] text-white text-xs font-extrabold rounded-xl shadow-lg transition flex items-center gap-1.5 uppercase tracking-wider cursor-pointer">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
-          <span>Download High-Res Photo</span>
+          <span>Download</span>
         </a>
       </div>
     </div>
   </div>
 
-  <!-- Footer -->
-  <footer class="border-t border-slate-100 py-6 text-center text-xs text-slate-400 mt-auto">
-    <div class="max-w-5xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
-      <span>Event Photo Finder &copy; 2026 Lyf Ads</span>
-      <div class="flex items-center gap-4">
-        <a href="/admin" class="hover:text-indigo-600 transition">Admin Portal</a>
+  <!-- Minimal Bottom Footer (White Background, Black Text, Red Elements) -->
+  <footer class="w-full py-8 text-xs text-slate-500 mt-auto border-t border-slate-100">
+    <div class="w-full max-w-6xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div>
+        <span class="font-extrabold text-black">LYF ADS</span>
+        <span class="text-slate-600 font-medium">&copy; 2026. All rights reserved.</span>
+      </div>
+      <div class="flex items-center gap-6">
+        <a href="#" class="hover:text-black font-medium transition">Privacy Policy</a>
+        <a href="#" class="hover:text-black font-medium transition">Terms of Service</a>
+        <!-- Red Element: Admin Link -->
+        <a href="/admin" class="hover:text-[#6a151e] font-bold text-[#8B1E28] transition flex items-center gap-1">
+          <span>Admin Access</span>
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+          </svg>
+        </a>
       </div>
     </div>
   </footer>
 
+  <!-- Core JavaScript Logic -->
   <script>
     let activeEventId = "";
+    let selectedSelfieBlob = null;
+    let selfiePreviewUrl = null;
 
     window.addEventListener("DOMContentLoaded", async () => {
       const urlParams = new URLSearchParams(window.location.search);
@@ -215,7 +278,6 @@
       await loadEvents(urlEvent);
     });
 
-    // Automatically re-fetch events whenever user switches back to this tab
     window.addEventListener("focus", () => {
       loadEvents(activeEventId);
     });
@@ -224,6 +286,25 @@
         loadEvents(activeEventId);
       }
     });
+
+    function openSelfieModal() {
+      const eventId = document.getElementById("eventId").value.trim();
+      if (!eventId) {
+        alert("Please select an event gallery first.");
+        return;
+      }
+      const modal = document.getElementById("selfieModal");
+      modal.classList.remove("hidden");
+      
+      if (!selectedSelfieBlob) {
+        document.getElementById("selfieInput").click();
+      }
+    }
+
+    function closeSelfieModal(e) {
+      if (e && e.target !== e.currentTarget && !e.target.closest("button")) return;
+      document.getElementById("selfieModal").classList.add("hidden");
+    }
 
     async function loadEvents(preferredEvent = "") {
       try {
@@ -234,7 +315,7 @@
         select.innerHTML = "";
 
         if (events.length === 0) {
-          select.innerHTML = `<option value="">No events found</option>`;
+          select.innerHTML = `<option value="">No events available</option>`;
           activeEventId = "";
           document.getElementById("eventId").value = "";
           return;
@@ -251,7 +332,6 @@
           select.value = preferredEvent;
           activeEventId = preferredEvent;
         } else if (preferredEvent) {
-          // If a query param was provided, keep it in the list
           const opt = document.createElement("option");
           opt.value = preferredEvent;
           opt.innerText = preferredEvent;
@@ -273,192 +353,284 @@
       document.getElementById("eventId").value = val;
     }
 
+    function updateThresholdDisplay(val) {
+      document.getElementById("thresholdBadge").innerText = Number(val).toFixed(2);
+    }
+
     function handleSelfieSelected(input) {
-      if (input.files && input.files[0]) {
-        const file = input.files[0];
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          document.getElementById("selfiePreviewImg").src = e.target.result;
-          document.getElementById("selfieEmptyState").classList.add("hidden");
-          document.getElementById("selfiePreviewState").classList.remove("hidden");
-        };
-        reader.readAsDataURL(file);
+      if (!input.files || !input.files[0]) return;
+      handleSelfieFile(input.files[0]);
+    }
+
+    async function handleSelfieFile(file) {
+      try {
+        selectedSelfieBlob = await downscaleImageBlob(file, 1080, 0.85);
+        if (selfiePreviewUrl) URL.revokeObjectURL(selfiePreviewUrl);
+        selfiePreviewUrl = URL.createObjectURL(selectedSelfieBlob);
+
+        const previewImg = document.getElementById("selfiePreviewImg");
+        const emptyState = document.getElementById("selfieEmptyState");
+        const previewState = document.getElementById("selfiePreviewState");
+
+        previewImg.src = selfiePreviewUrl;
+        emptyState.classList.add("hidden");
+        previewState.classList.remove("hidden");
+      } catch (err) {
+        console.error("Image processing error:", err);
+        alert("Could not process the selected image.");
       }
     }
 
-    function updateThresholdDisplay(val) {
-      document.getElementById("thresholdBadge").innerText = val;
-    }
+    function downscaleImageBlob(file, maxDimension = 1080, quality = 0.85) {
+      return new Promise((resolve, reject) => {
+        const img = new Image();
+        const objectUrl = URL.createObjectURL(file);
 
-    async function compressSelfie(file, maxDim = 1080) {
-      return new Promise((resolve) => {
-        if (file.size < 200 * 1024 && (file.type === 'image/jpeg' || file.type === 'image/png')) {
-          resolve(file);
-          return;
-        }
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          const img = new Image();
-          img.onload = () => {
-            let { width, height } = img;
-            if (width > maxDim || height > maxDim) {
-              if (width > height) {
-                height = Math.round((height * maxDim) / width);
-                width = maxDim;
-              } else {
-                width = Math.round((width * maxDim) / height);
-                height = maxDim;
-              }
+        img.onload = () => {
+          URL.revokeObjectURL(objectUrl);
+          let { width, height } = img;
+          if (width > maxDimension || height > maxDimension) {
+            if (width > height) {
+              height = Math.round((height * maxDimension) / width);
+              width = maxDimension;
+            } else {
+              width = Math.round((width * maxDimension) / height);
+              height = maxDimension;
             }
-            const canvas = document.createElement("canvas");
-            canvas.width = width;
-            canvas.height = height;
-            const ctx = canvas.getContext("2d");
-            ctx.drawImage(img, 0, 0, width, height);
-            canvas.toBlob((blob) => {
-              if (blob) {
-                resolve(new File([blob], "selfie.jpg", { type: "image/jpeg" }));
-              } else {
-                resolve(file);
-              }
-            }, "image/jpeg", 0.88);
-          };
-          img.onerror = () => resolve(file);
-          img.src = e.target.result;
+          }
+          const canvas = document.createElement("canvas");
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext("2d");
+          ctx.drawImage(img, 0, 0, width, height);
+
+          canvas.toBlob(
+            (blob) => {
+              if (blob) resolve(blob);
+              else reject(new Error("Canvas toBlob returned null"));
+            },
+            "image/jpeg",
+            quality
+          );
         };
-        reader.onerror = () => resolve(file);
-        reader.readAsDataURL(file);
+
+        img.onerror = (e) => {
+          URL.revokeObjectURL(objectUrl);
+          reject(e);
+        };
+
+        img.src = objectUrl;
       });
     }
 
+    // Drag & Drop
+    const dropZone = document.getElementById("dropZone");
+    ['dragenter', 'dragover'].forEach(eventName => {
+      dropZone.addEventListener(eventName, (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        dropZone.classList.add("border-[#8B1E28]", "bg-rose-50/40");
+      }, false);
+    });
+    ['dragleave', 'drop'].forEach(eventName => {
+      dropZone.addEventListener(eventName, (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        dropZone.classList.remove("border-[#8B1E28]", "bg-rose-50/40");
+      }, false);
+    });
+    dropZone.addEventListener('drop', (e) => {
+      const dt = e.dataTransfer;
+      const files = dt.files;
+      if (files && files.length > 0) {
+        handleSelfieFile(files[0]);
+      }
+    }, false);
+
+    // AI Facial Search
     async function findPhotos() {
       const eventId = document.getElementById("eventId").value.trim();
-      const fileInput = document.getElementById("selfieInput");
+      const threshold = parseFloat(document.getElementById("thresholdSlider").value) || 0.45;
       const searchBtn = document.getElementById("searchBtn");
       const loader = document.getElementById("searchLoader");
       const resultsSection = document.getElementById("resultsSection");
       const gallery = document.getElementById("galleryGrid");
       const emptyResults = document.getElementById("emptyResults");
+      const resultHeading = document.getElementById("resultHeading");
+      const resultSubheading = document.getElementById("resultSubheading");
       const resultCountBadge = document.getElementById("resultCountBadge");
 
       if (!eventId) {
-        alert("Please select an event.");
+        alert("Please select an event gallery first.");
         return;
       }
-      if (!fileInput.files || !fileInput.files[0]) {
-        alert("Please take or upload a selfie first.");
+      if (!selectedSelfieBlob) {
+        alert("Please upload or take a reference selfie first.");
         return;
       }
 
       searchBtn.disabled = true;
-      searchBtn.classList.add("opacity-50", "cursor-not-allowed");
       loader.classList.remove("hidden");
-      resultsSection.classList.remove("hidden");
-      emptyResults.classList.add("hidden");
-      gallery.innerHTML = "";
 
-      const rawSelfie = fileInput.files[0];
-      const optimizedSelfie = await compressSelfie(rawSelfie, 1080);
       const formData = new FormData();
-      formData.append("selfie", optimizedSelfie);
-      const threshold = document.getElementById("thresholdSlider").value;
-      formData.append("threshold", threshold);
+      formData.append("event_id", eventId);
+      formData.append("threshold", threshold.toString());
+      formData.append("selfie", selectedSelfieBlob, "selfie.jpg");
 
       try {
-        const res = await fetch(`/api/events/${encodeURIComponent(eventId)}/search`, {
+        const searchUrl = `/api/events/${encodeURIComponent(eventId)}/search`;
+        const res = await fetch(searchUrl, {
           method: "POST",
           body: formData
         });
+
+        if (!res.ok) {
+          const errData = await res.json().catch(() => ({}));
+          throw new Error(errData.detail || "Search request failed");
+        }
+
         const data = await res.json();
+        const matches = data.results || data.matches || [];
 
-        loader.classList.add("hidden");
-        searchBtn.disabled = false;
-        searchBtn.classList.remove("opacity-50", "cursor-not-allowed");
+        // Close modal and reveal gallery
+        closeSelfieModal();
+        resultsSection.classList.remove("hidden");
+        gallery.innerHTML = "";
+        resultHeading.innerText = "Matching Photos";
+        resultSubheading.innerText = `Photos matched by facial recognition in ${eventId}`;
 
-        if (data.results && data.results.length > 0) {
-          resultCountBadge.innerText = `${data.results.length} Photos`;
+        if (matches.length > 0) {
+          resultCountBadge.innerText = `${matches.length} Photos`;
           emptyResults.classList.add("hidden");
-
-          data.results.forEach(item => {
-            const card = document.createElement("div");
-            card.className = "group relative rounded-2xl overflow-hidden bg-white border border-slate-200/80 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col";
-
-            const previewUrl = item.preview_url || item.url;
-            const downloadUrl = item.download_url || item.url;
-            const matchPct = Math.round(item.similarity_score * 100);
-            const isGDrive = downloadUrl && downloadUrl.includes("drive.google.com");
-
-            card.innerHTML = `
-              <div class="relative overflow-hidden bg-slate-100 aspect-[3/4] cursor-pointer" onclick="openLightbox('${previewUrl}', '${downloadUrl}', '${item.file_name}', ${matchPct})">
-                <img src="${previewUrl}" alt="${item.file_name}" loading="lazy" class="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-500 ease-out" />
-                <div class="absolute inset-0 bg-black/10 group-hover:bg-black/0 transition"></div>
-                
-                <span class="absolute top-2.5 right-2.5 bg-slate-950/70 backdrop-blur-md text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm">
-                  ${matchPct}% match
-                </span>
-
-                ${isGDrive ? `
-                <span class="absolute bottom-2.5 left-2.5 bg-emerald-600/90 backdrop-blur-sm text-white text-[9px] font-semibold px-2 py-0.5 rounded-md shadow-sm flex items-center gap-1">
-                  ☁️ High-Res
-                </span>
-                ` : ''}
-
-                <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/20 backdrop-blur-[2px]">
-                  <span class="p-2 rounded-full bg-white/90 text-slate-800 shadow-md transform scale-90 group-hover:scale-100 transition">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v6m3-3H7" /></svg>
-                  </span>
-                </div>
-              </div>
-
-              <div class="p-3 bg-white flex flex-col gap-2 flex-1 justify-between">
-                <div class="text-[11px] font-medium text-slate-500 truncate" title="${item.file_name}">
-                  ${item.file_name}
-                </div>
-                <a href="${downloadUrl}" download="${item.file_name}" target="_blank" class="w-full py-2 px-3 text-xs font-semibold rounded-xl ${isGDrive ? 'bg-emerald-600 hover:bg-emerald-500 text-white' : 'bg-slate-900 hover:bg-slate-800 text-white'} transition flex items-center justify-center gap-1.5 shadow-sm">
-                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
-                  <span>${isGDrive ? "Download Original" : "Download"}</span>
-                </a>
-              </div>
-            `;
-            gallery.appendChild(card);
-          });
-
-          // Smooth scroll down to results
-          resultsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          renderGallery(matches, true);
         } else {
-          resultCountBadge.innerText = `0 Photos`;
+          resultCountBadge.innerText = "0 Photos";
           emptyResults.classList.remove("hidden");
         }
+        resultsSection.scrollIntoView({ behavior: 'smooth' });
       } catch (err) {
-        loader.classList.add("hidden");
+        console.error("Search error:", err);
+        alert("Search failed: " + err.message);
+      } finally {
         searchBtn.disabled = false;
-        searchBtn.classList.remove("opacity-50", "cursor-not-allowed");
-        alert("Failed to search photos. Please check your network connection.");
+        loader.classList.add("hidden");
       }
     }
 
-    // Lightbox Modal Functions
-    function openLightbox(previewUrl, downloadUrl, fileName, matchPct) {
+    // Browse Full Album
+    async function browseFullAlbum() {
+      const eventId = document.getElementById("eventId").value.trim();
+      const resultsSection = document.getElementById("resultsSection");
+      const gallery = document.getElementById("galleryGrid");
+      const emptyResults = document.getElementById("emptyResults");
+      const resultHeading = document.getElementById("resultHeading");
+      const resultSubheading = document.getElementById("resultSubheading");
+      const resultCountBadge = document.getElementById("resultCountBadge");
+
+      if (!eventId) {
+        alert("Please select an event gallery first.");
+        return;
+      }
+
+      resultsSection.classList.remove("hidden");
+      emptyResults.classList.add("hidden");
+      gallery.innerHTML = `
+        <div class="col-span-full py-12 text-center text-slate-500">
+          <svg class="animate-spin h-6 w-6 mx-auto mb-2 text-[#8B1E28]" viewBox="0 0 24 24" fill="none">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+          </svg>
+          Loading photographs...
+        </div>
+      `;
+      resultHeading.innerText = "Full Album";
+      resultSubheading.innerText = `All captures in ${eventId}`;
+      resultsSection.scrollIntoView({ behavior: 'smooth' });
+
+      try {
+        const res = await fetch(`/api/events/${encodeURIComponent(eventId)}/photos`);
+        const data = await res.json();
+        gallery.innerHTML = "";
+
+        if (data.photos && data.photos.length > 0) {
+          resultCountBadge.innerText = `${data.photos.length} Photos`;
+          emptyResults.classList.add("hidden");
+          renderGallery(data.photos, false);
+        } else {
+          resultCountBadge.innerText = "0 Photos";
+          emptyResults.classList.remove("hidden");
+        }
+      } catch (err) {
+        console.error("Browse album error:", err);
+        gallery.innerHTML = "";
+        alert("Could not load album: " + err.message);
+      }
+    }
+
+    function renderGallery(items, isMatched) {
+      const gallery = document.getElementById("galleryGrid");
+      gallery.innerHTML = "";
+
+      items.forEach(item => {
+        const card = document.createElement("div");
+        card.className = "group relative rounded-2xl overflow-hidden bg-white border border-slate-200 hover:border-[#8B1E28] shadow-xs hover:shadow-lg transition-all duration-300 flex flex-col";
+
+        const previewUrl = item.preview_url || item.url;
+        const downloadUrl = item.download_url || item.url;
+        const score = item.similarity_score;
+
+        card.innerHTML = `
+          <div class="relative overflow-hidden bg-slate-100 aspect-[3/4] cursor-pointer" onclick="openLightbox('${previewUrl}', '${downloadUrl}', '${item.file_name}')">
+            <img src="${previewUrl}" alt="${item.file_name}" loading="lazy" class="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-500 ease-out" />
+            <div class="absolute inset-0 bg-black/0 group-hover:bg-black/15 transition-colors"></div>
+          </div>
+          <div class="p-3 flex items-center justify-between bg-white border-t border-slate-100">
+            <span class="text-[11px] font-mono text-slate-700 font-semibold truncate max-w-[120px]" title="${item.file_name}">${item.file_name}</span>
+            <button onclick="downloadPhoto('${downloadUrl}', '${item.file_name}')" class="p-1.5 text-slate-500 hover:text-white rounded-lg hover:bg-[#8B1E28] transition cursor-pointer" title="Download">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+            </button>
+          </div>
+        `;
+        gallery.appendChild(card);
+      });
+    }
+
+    function openLightbox(previewUrl, downloadUrl, fileName) {
       const modal = document.getElementById("lightboxModal");
       const img = document.getElementById("lightboxImg");
-      const badge = document.getElementById("lightboxMatchBadge");
       const dlBtn = document.getElementById("lightboxDownloadBtn");
 
       img.src = previewUrl;
-      badge.innerText = `Match ${matchPct}%`;
       dlBtn.href = downloadUrl;
-      dlBtn.setAttribute("download", fileName);
+      dlBtn.setAttribute("download", fileName || "photo.jpg");
 
       modal.classList.remove("hidden");
+      document.body.style.overflow = "hidden";
     }
 
-    function closeLightbox() {
-      document.getElementById("lightboxModal").classList.add("hidden");
+    function closeLightbox(e) {
+      if (e && e.target !== e.currentTarget && !e.target.closest("button")) return;
+      const modal = document.getElementById("lightboxModal");
+      modal.classList.add("hidden");
+      document.body.style.overflow = "auto";
     }
 
     document.addEventListener("keydown", (e) => {
-      if (e.key === "Escape") closeLightbox();
+      if (e.key === "Escape") {
+        closeLightbox();
+        closeSelfieModal();
+      }
     });
+
+    function downloadPhoto(url, filename) {
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename || "photo.jpg";
+      a.target = "_blank";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    }
   </script>
 </body>
 </html>

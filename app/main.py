@@ -73,10 +73,37 @@ async def lifespan(app: FastAPI):
 app = FastAPI(title="Event Face Finder API", lifespan=lifespan)
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
+if os.path.exists("public"):
+    app.mount("/public", StaticFiles(directory="public"), name="public")
 
 @app.get("/health")
 def health():
     return {"status": "ok", "engine_ready": engine is not None}
+
+@app.get("/api/events/{event_id}/photos")
+async def list_event_photos(event_id: str):
+    """Lists all photos in an event folder for album browsing."""
+    event_folder = os.path.join(STORAGE_DIR, event_id)
+    if not os.path.exists(event_folder):
+        raise HTTPException(status_code=404, detail=f"Event '{event_id}' not found.")
+    
+    valid_exts = ('.jpg', '.jpeg', '.png', '.webp', '.heic', '.heif')
+    photos = []
+    for root, _, files in os.walk(event_folder):
+        for f in sorted(files):
+            if not f.startswith(('._', '.')) and f.lower().endswith(valid_exts):
+                rel_path = os.path.relpath(os.path.join(root, f), event_folder).replace('\\', '/')
+                photos.append({
+                    "file_name": f,
+                    "url": f"/photos/{event_id}/{rel_path}",
+                    "preview_url": f"/photos/{event_id}/{rel_path}",
+                    "download_url": f"/photos/{event_id}/{rel_path}"
+                })
+    return {
+        "event_id": event_id,
+        "total_photos": len(photos),
+        "photos": photos
+    }
 
 @app.get("/photos/{event_id}/{filename:path}")
 async def get_photo(event_id: str, filename: str):
@@ -536,5 +563,14 @@ def search_faces(
     return {
         "event_id": event_id,
         "total_matches": len(matches),
-        "results": matches
+        "results": matches,
+        "matches": matches
     }
+
+@app.post("/api/search")
+def search_faces_alias(
+    event_id: str = Form(...),
+    selfie: UploadFile = File(...),
+    threshold: float = Form(0.45)
+):
+    return search_faces(event_id=event_id, selfie=selfie, threshold=threshold)
